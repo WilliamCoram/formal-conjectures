@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import FormalConjecturesTest.RealPeriod.Existence
-import FormalConjecturesTest.RealPeriod.Conjugation
-import FormalConjecturesTest.RealComponents
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealComponents
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Conjugation
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence
+
+@[expose] public noncomputable section
 
 /-!
 # The real period of an elliptic curve
@@ -41,11 +44,13 @@ $\mathbb{R}$, `WeierstrassCurve.leastRealPeriod`, and the real period `Weierstra
 They rest on three classical facts:
 
 * `PeriodPair.exists_g₂_g₃`: a lattice with any prescribed nondegenerate invariants exists.
-  Proved in `FormalConjecturesTest.RealPeriod.Existence`, from surjectivity of the modular
-  $j$-function and the nonvanishing of the discriminant of a lattice.
+  Proved in `FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence`,
+  from surjectivity of the modular $j$-function and the nonvanishing of the discriminant of a
+  lattice.
 * `PeriodPair.isReal_iff_exists_real`: a lattice is real if and only if its invariants are.
-  Proved in `FormalConjecturesTest.RealPeriod.Conjugation`, from the uniqueness of the lattice
-  with given invariants.
+  Proved in
+  `FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Conjugation`, from
+  the uniqueness of the lattice with given invariants.
 * `PeriodPair.exists_isLeast_pos_real`: a real lattice has a least positive real element,
   packaged as `PeriodPair.leastRealPeriod` with specification `isLeast_leastRealPeriod`.
   Proved below.

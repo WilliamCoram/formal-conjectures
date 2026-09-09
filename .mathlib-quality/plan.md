@@ -38,7 +38,7 @@ Local extractions of Pastras and Cremona are in the session's tool-results direc
   `exists_weierstrassP_eq`), lattice existence (`work/backward.lean`), scaling/conjugation and the
   uniqueness theorem (`SayebWork/`). **Nothing there treats the real axis, real periods, or the integral.**
   The pieces relevant to this project (Eisenstein bridge, j-surjectivity, existence, uniqueness, conjugation)
-  were already ported to `FormalConjecturesTest/RealPeriod/*.lean` (sorry-free). The complex-analytic
+  were already ported to `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/*.lean` (sorry-free). The complex-analytic
   uniformisation (addition theorem, group isomorphism) is **not needed** for the period equivalence and is
   not imported; the only fact from that circle of ideas we need — zeros of `℘'` are half-periods — is proved
   directly from the ODE (see decomposition.md).
@@ -74,14 +74,14 @@ monotonicity, image.
 
 ## File structure
 
-- `FormalConjecturesTest/RealPeriod/HalfPeriods.lean` — general lattices: `℘'' = 6℘² − g₂/2`,
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean` — general lattices: `℘'' = 6℘² − g₂/2`,
   `derivWeierstrassP_eq_zero_iff`. Imports specific Mathlib files + `RealPeriod/Uniqueness.lean`.
-- `FormalConjecturesTest/RealPeriod/RealAxis.lean` — real lattices: conjugation of ℘, the real functions,
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean` — real lattices: conjugation of ℘, the real functions,
   monotonicity on `(0, Ω/2]`, the largest root, the elliptic integral. Imports `Conjugation.lean`,
   `HalfPeriods.lean`, specific Mathlib files. The least positive real period enters only through a
   hypothesis `hΩ : IsLeast {x : ℝ | (x : ℂ) ∈ L.lattice ∧ 0 < x} Ω`, so the file does not depend on the
   choice function in `RealPeriod.lean` (which imports all of Mathlib and is slow to build).
-- `FormalConjecturesTest/RealPeriodIntegral.lean` — the `WeierstrassCurve` statements. Imports
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean` — the `WeierstrassCurve` statements. Imports
   `PeriodIntegral.lean`, `RealPeriod.lean`, `RealAxis.lean`.
 
 Existing files are not modified (the sentence "That the two versions agree is the uniformisation theorem,

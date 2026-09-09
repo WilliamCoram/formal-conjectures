@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,27 +13,44 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import FormalConjecturesTest.PeriodIntegral
-import FormalConjecturesTest.RealPeriod
-import FormalConjecturesTest.RealPeriod.RealAxis
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodLattice
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.RealAxis
+public import FormalConjecturesForMathlib.MeasureTheory.Integral.Bochner.Set
+
+@[expose] public noncomputable section
 
 /-!
 # The two definitions of the real period agree
 
-`FormalConjecturesTest.RealPeriod` defines the real period of an elliptic curve $E$ over
-$\mathbb{R}$ from its period lattice $\Lambda$, the lattice with $g_2 = c_4 / 12$ and
-$g_3 = c_6 / 216$: the least positive real period `WeierstrassCurve.leastRealPeriod` is the least
-positive element of $\Lambda \cap \mathbb{R}$. `FormalConjecturesTest.PeriodIntegral` defines it as
-the integral $2 \int_{e_1}^{\infty} dx / \sqrt{4x^3 + b_2 x^2 + 2 b_4 x + b_6}$ of the invariant
-differential over the identity component of $E(\mathbb{R})$,
-`WeierstrassCurve.leastRealPeriodIntegral`. This file proves that they agree
-(`WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`), hence so do the real periods
-(`WeierstrassCurve.realPeriodIntegral_eq_realPeriod`).
+There are two definitions of the real period of an elliptic curve $E$ over $\mathbb{R}$.
 
-The substitution $x = X - b_2 / 12$ turns the two-torsion cubic into $4X^3 - g_2 X - g_3$ and
-sends $e_1$ to the largest real root $\wp(\Omega / 2)$ of that cubic
-(`WeierstrassCurve.e₁_add_b₂_div_twelve`), and then
+* *From the period lattice.* `WeierstrassCurve.leastRealPeriod` is the least positive element of
+  $\Lambda \cap \mathbb{R}$, where $\Lambda$ is the period lattice, the lattice with
+  $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$; the real period `WeierstrassCurve.realPeriod` is
+  $c_\infty$ times it, where $c_\infty$ is the number of connected components of $E(\mathbb{R})$,
+  `WeierstrassCurve.nrRealComponents`.
+* *From the invariant differential.* `WeierstrassCurve.leastRealPeriodIntegral` is
+  $2 \int_{e_1}^{\infty} dx / \sqrt{4x^3 + b_2 x^2 + 2 b_4 x + b_6}$, the integral of $|\omega|$
+  over the identity component of $E(\mathbb{R})$, and the real period
+  `WeierstrassCurve.realPeriodIntegral` is $2 \int_{\mathbb{R}} dx / \sqrt{F(x)}$, the integral
+  over all of $E(\mathbb{R})$.
+
+This file proves that the two agree, both for the least positive real period
+(`WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`) and for the real period
+(`WeierstrassCurve.realPeriodIntegral_eq_realPeriod`). The latter needs no separate argument for
+the two signs of the discriminant: the integral definition already knows that the bounded
+component contributes as much as the identity component when $\Delta > 0$, and nothing when
+$\Delta < 0$, by `WeierstrassCurve.realPeriodIntegral_of_pos` and
+`WeierstrassCurve.realPeriodIntegral_of_neg`.
+
+The bridge between the two is the substitution $x = X - b_2 / 12$, which turns the 2-division
+polynomial into the depressed cubic $4X^3 - g_2 X - g_3$ of the period lattice
+(`WeierstrassCurve.eval_Ψ₂Sq_sub`, `WeierstrassCurve.leastRealPeriodIntegral_eq_integral_depressed`)
+and sends $e_1$ to the largest real root $\wp(\Omega / 2)$ of that cubic
+(`WeierstrassCurve.e₁_add_b₂_div_twelve`). Then
 `PeriodPair.IsReal.integral_inv_sqrt_eq_half` evaluates the integral as $\Omega / 2$.
 
 *References:*
@@ -44,9 +61,28 @@ sends $e_1$ to the largest real root $\wp(\Omega / 2)$ of that cubic
     Classical and Quantum Mechanics, §3.1 and Appendix A, https://arxiv.org/abs/1706.07371
 -/
 
-open MeasureTheory Set
+open MeasureTheory Polynomial Set
 
 namespace WeierstrassCurve
+
+/- ## The depressed cubic -/
+
+/-- The substitution $x = X - b_2 / 12$ turns the 2-division polynomial into the depressed cubic
+$4X^3 - g_2 X - g_3$ with $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$, the invariants of the period
+lattice. -/
+lemma eval_Ψ₂Sq_sub (W : WeierstrassCurve ℝ) (x : ℝ) :
+    W.Ψ₂Sq.eval (x - W.b₂ / 12) = 4 * x ^ 3 - W.c₄ / 12 * x - W.c₆ / 216 := by
+  simp only [Ψ₂Sq, eval_add, eval_mul, eval_pow, eval_C, eval_X, c₄, c₆, b₄]
+  ring
+
+/-- The least positive real period as an integral, in terms of the depressed cubic
+$4X^3 - g_2 X - g_3$. -/
+lemma leastRealPeriodIntegral_eq_integral_depressed (W : WeierstrassCurve ℝ) :
+    W.leastRealPeriodIntegral =
+      2 * ∫ x in Ioi (W.e₁ + W.b₂ / 12), (√(4 * x ^ 3 - W.c₄ / 12 * x - W.c₆ / 216))⁻¹ := by
+  rw [leastRealPeriodIntegral, ← integral_comp_add_right_Ioi]
+  refine congrArg (2 * ·) (setIntegral_congr_fun measurableSet_Ioi fun x _ ↦ ?_)
+  rw [realPeriodIntegrand, ← W.eval_Ψ₂Sq_sub (x + W.b₂ / 12), add_sub_cancel_right]
 
 /- ## The invariants of the period lattice -/
 
@@ -74,8 +110,9 @@ lemma periodPair_map_g₃_re : (W.map Complex.ofRealHom).periodPair.g₃.re = W.
 
 /- ## The largest root -/
 
-/-- The substitution $x = X - b_2 / 12$ sends the largest real root $e_1$ of the two-torsion cubic
-to the largest real root $\wp(\Omega / 2)$ of the depressed cubic $4X^3 - g_2 X - g_3$. -/
+/-- The substitution $x = X - b_2 / 12$ sends the largest real root $e_1$ of the 2-division
+polynomial to the largest real root $\wp(\Omega / 2)$ of the depressed cubic
+$4X^3 - g_2 X - g_3$. -/
 lemma e₁_add_b₂_div_twelve : W.e₁ + W.b₂ / 12 =
     (W.map Complex.ofRealHom).periodPair.weierstrassPRe (W.leastRealPeriod / 2) := by
   set L := (W.map Complex.ofRealHom).periodPair with hLdef
@@ -89,10 +126,10 @@ lemma e₁_add_b₂_div_twelve : W.e₁ + W.b₂ / 12 =
   rw [W.periodPair_map_g₂_re, W.periodPair_map_g₃_re] at hroot hmax
   have key : W.e₁ = e - W.b₂ / 12 := by
     refine W.e₁_eq_of_isRoot ?_ fun x hx hroot' ↦ ?_
-    · rw [Polynomial.IsRoot, W.eval_toPoly_twoTorsionPolynomial_sub]
+    · rw [Polynomial.IsRoot, W.eval_Ψ₂Sq_sub]
       linarith [hroot]
     · have := hmax (x + W.b₂ / 12) (by
-        rw [← W.eval_toPoly_twoTorsionPolynomial_sub, add_sub_cancel_right]
+        rw [← W.eval_Ψ₂Sq_sub, add_sub_cancel_right]
         exact hroot')
       linarith
   linarith [key]
@@ -111,8 +148,14 @@ theorem leastRealPeriodIntegral_eq_leastRealPeriod :
     ← W.periodPair_map_g₂_re, ← W.periodPair_map_g₃_re, hL.integral_inv_sqrt_eq_half hΩ]
   ring
 
-/-- **The two definitions of the real period agree.** -/
+/-- **The two definitions of the real period agree**: the integral of $|\omega|$ over
+$E(\mathbb{R})$ is the least positive real period of the period lattice times the number of
+connected components of $E(\mathbb{R})$. -/
 theorem realPeriodIntegral_eq_realPeriod : W.realPeriodIntegral = W.realPeriod := by
-  rw [realPeriodIntegral, realPeriod, W.leastRealPeriodIntegral_eq_leastRealPeriod]
+  rcases lt_or_gt_of_ne (isUnit_iff_ne_zero.mp W.isUnit_Δ) with h | h
+  · rw [W.realPeriodIntegral_of_neg h, W.leastRealPeriodIntegral_eq_leastRealPeriod,
+      W.realPeriod_of_neg h]
+  · rw [W.realPeriodIntegral_of_pos h, W.leastRealPeriodIntegral_eq_leastRealPeriod,
+      W.realPeriod_of_pos h]
 
 end WeierstrassCurve

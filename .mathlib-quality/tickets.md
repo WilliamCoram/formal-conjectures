@@ -3,8 +3,10 @@
 Project root: `/Users/nkw24xru/Desktop/Lean/formal-conjectures` (branch `periods`).
 Plan: `.mathlib-quality/plan.md`. Decomposition (source quotes, attacks, verified names):
 `.mathlib-quality/decomposition.md`. Build rule: build only the touched module, e.g.
-`lake build FormalConjecturesTest.RealPeriod.HalfPeriods` (never the whole library). The test library has
-`warn.sorry = false`, so check for remaining sorries with `grep -n sorry <file>`.
+`lake build FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.HalfPeriods`
+(never the whole library). The development now lives in `FormalConjecturesForMathlib`, which is a
+default target and uses the module system (`module`, `public import`, `@[expose] public
+noncomputable section`), so a `sorry` is a build warning rather than being silenced.
 
 Notation: inside `namespace PeriodPair`, `℘[L]` = `weierstrassP L`, `℘'[L]` = `derivWeierstrassP L`,
 `℘[L - l₀]` = `weierstrassPExcept L l₀`, `℘'[L - l₀]` = `derivWeierstrassPExcept L l₀` (scoped notation
@@ -33,7 +35,7 @@ T014 → T015 → CLEANUP-ALL-1 → T016 → CLEANUP-6 → CLEANUP-FINAL.
     coercion elaborates); `hasDerivAt_weierstrassP` is `simpa using …differentiableAt.hasDerivAt`;
     `derivWeierstrassP_eq_zero_of_two_mul_mem` needed `h1.symm` (orientation) into `CharZero.eq_neg_self_iff`.
     `lake build` clean; `#print axioms` on all six shows only propext/Classical.choice/Quot.sound.
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: none
 - **Parallel**: yes
 - **Type**: lemmas (6 sorries: lines 62, 73, 77, 82, 88, 107)
@@ -94,7 +96,7 @@ All for arbitrary `L : PeriodPair`; `derivWeierstrassP_eq_zero_of_two_mul_mem` h
     self_mem_nhdsWithin)` on `𝓝[≠] 0` (the `𝓝[V] 0` route needs a `NeBot` instance that is not
     available). `hasDerivAt_derivWeierstrassP` is `rw [← deriv_derivWeierstrassP hz]` then
     `differentiableAt.hasDerivAt`. Axioms clean.
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: T001
 - **Parallel**: yes (with T006–T008, T014)
 - **Type**: lemmas (2 sorries: lines 94, 99)
@@ -150,7 +152,7 @@ Any lattice, any `z ∉ Λ`. The identity is stated with `deriv` so that `hasDer
     `ContinuousAt.tendsto` for the two `Tendsto (fun t ↦ z₀ ± ↑t)` facts (`simpa using h.tendsto`);
     `Pi.neg_def` + `neg_neg` to turn `HasDerivAt (-f)` into `HasDerivAt (fun t ↦ -f t)` with the
     double negation cancelled. `hf0.trans hg0.symm` supplies `heq`. Axioms clean.
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: T002
 - **Parallel**: yes (with T006–T008)
 - **Type**: lemma (1 sorry: line 113)
@@ -221,7 +223,7 @@ Arbitrary lattice and arbitrary `z₀ ∉ Λ`; the real line through `z₀` in d
     clean: max width 100, no λ/$-operator/push_neg/set_option/haveI/letI/erw/FIXME, no subsection
     dividers, private-vs-docstring rule satisfied (all decls public with one-sentence docstrings).
     Axioms clean; downstream RealAxis still builds.
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: T003
 - **Parallel**: no
 - **Type**: cleanup
@@ -236,7 +238,7 @@ Arbitrary lattice and arbitrary `z₀ ∉ Λ`; the real line through `z₀` in d
     an explicit `ext`/`constructor` (the `simp [sub_eq_iff_eq_add]` route from the sketch did not
     close it); preconnectedness then from T001. Analyticity of both sides by `AnalyticOnNhd.comp`
     with `by fun_prop` for the affine inner maps. `0 ∈ U` needs `add_zero`/`sub_zero` first.
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: CLEANUP-1
 - **Parallel**: yes (with T006–T011)
 - **Type**: lemma (1 sorry: line 120)
@@ -289,7 +291,7 @@ Stated for all `z` with both points off the lattice (junk values otherwise).
     `AnalyticAt.meromorphicOrderAt_nonneg`, contradiction by `decide`). The neighbourhood
     `{w | 2z₀ - w ∉ Λ}` must come from `ContinuousAt.preimage_mem_nhds` with `exact`, not `simpa`
     (simp normalises the preimage into a different but defeq presentation and then fails to match).
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: T004
 - **Parallel**: yes (with T006–T008)
 - **Type**: lemma (1 sorry: line 128; `derivWeierstrassP_eq_zero_iff` at line 134 is already proved from it)
@@ -334,13 +336,13 @@ Any lattice; `hz₀` kept because T004 needs it.
   - 2026-09-08T17:44: file-level cleanup complete. Stripped trailing whitespace; named the two
     remaining anonymous `have :=` bindings. 248 lines, max width 100, zero sorries, `lake build`
     clean, all declarations axiom-clean (propext/Classical.choice/Quot.sound only).
-- **File**: FormalConjecturesTest/RealPeriod/HalfPeriods.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean
 - **Depends on**: T005
 - **Parallel**: no
 - **Type**: cleanup
 - **Description**: final per-file cleanup; `#print axioms PeriodPair.derivWeierstrassP_eq_zero_iff` must show only
   `propext`, `Classical.choice`, `Quot.sound`. Consider whether `Complex.isPreconnected_compl_of_countable` should be
-  `private` or moved to `FormalConjecturesTest/ForMathlib`.
+  `private` or given its own `FormalConjecturesForMathlib` module.
 
 ---
 
@@ -350,7 +352,7 @@ Any lattice; `hz₀` kept because T004 needs it.
   - 2026-09-08T17:52: DONE. `Complex.conj_tsum` + reindex by `conjugateLatticeEquiv` as sketched;
     the ℘' version additionally needs `Complex.conj_ofNat` for `conj 2 = 2`. The two `coe_*Re`
     lemmas are one-line term proofs via `Complex.conj_eq_iff_re`.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T001 (for `weierstrassP_congr`, `derivWeierstrassP_congr`)
 - **Parallel**: yes
 - **Type**: lemmas (6 sorries: lines 70, 74, 80, 84, 100, 104)
@@ -400,7 +402,7 @@ DLMF 23.5(i) (decomposition R1–R7).
 - **Progress**:
   - 2026-09-08T17:56: DONE, first compile. All four exactly as sketched; three are one-line terms
     via `HasDerivAt.real_of_complex`.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T002, T006
 - **Parallel**: yes
 - **Type**: lemmas (4 sorries: lines 111, 115, 119, 127)
@@ -454,7 +456,7 @@ Derivative and continuity lemmas need no realness (they are about real parts).
     (iii) `simp only [heq]` cannot rewrite an eta-contracted function head — use
     `rw [show f = fun t ↦ … from funext heq]`. Also `AnalyticAt.continuousAt` must be
     `.continuousAt.tendsto` before `simpa` will see it as a `Tendsto`.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T006 (file order only; mathematically independent)
 - **Parallel**: yes
 - **Type**: lemmas (2 sorries: lines 137, 141)
@@ -507,7 +509,7 @@ No realness hypothesis: statements about real parts hold for every lattice.
     whitespace, no forbidden constructs). Extracted the duplicated `t^n → 𝓝[>] 0` argument from
     the two pole lemmas into two `private` helpers `tendsto_pow_nhdsGT_zero` and
     `tendsto_inv_pow_nhdsGT_zero`, which shortened both proofs to one line each.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T008
 - **Parallel**: no
 - **Type**: cleanup
@@ -521,7 +523,7 @@ No realness hypothesis: statements about real parts hold for every lattice.
   - 2026-09-08T18:24: DONE. `notMem_lattice_of_lt` is a one-line term. In `derivWeierstrassPRe_half`
     the goal is already `(℘'[L] ↑(Ω/2)).re = 0` with the cast in the form `h` provides, so a plain
     `rw [derivWeierstrassPRe, h, Complex.zero_re]` closes it (no `push_cast` needed).
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: CLEANUP-3, T005
 - **Parallel**: yes (with T014)
 - **Type**: lemmas (3 sorries: lines 150, 154, 159). Section variable `hΩ : IsLeast {x : ℝ | (x : ℂ) ∈ L.lattice ∧ 0 < x} Ω` is `include`d.
@@ -563,7 +565,7 @@ No realness needed; `hΩ` is any witness of the least positive real period.
 - **Status**: done (finished 2026-09-08T18:30Z)
 - **Progress**:
   - 2026-09-08T18:30: DONE, first compile, exactly as sketched.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T009
 - **Parallel**: no
 - **Type**: lemmas (2 sorries: lines 165, 170)
@@ -608,7 +610,7 @@ Realness `hL` needed (values of ℘' must be real to compare signs).
 - **Status**: done (finished 2026-09-08T18:34Z)
 - **Progress**:
   - 2026-09-08T18:34: DONE, first compile, as sketched.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T010
 - **Parallel**: no
 - **Type**: lemma (1 sorry: line 175)
@@ -648,7 +650,7 @@ As stated; `Ω/2` endpoint value is `e₁`.
     whitespace, no forbidden constructs, all bodies ≤ 20 lines). The `hne` helper inside
     `derivWeierstrassPRe_neg_of_lt_half` is used twice, so it stays as a local `have`. No golf
     opportunities left: every proof is already the shortest form that compiles.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T011
 - **Parallel**: no
 - **Type**: cleanup
@@ -662,7 +664,7 @@ As stated; `Ω/2` endpoint value is `e₁`.
   - 2026-09-08T18:42: DONE. Needed `(t := Ω / 2)` explicitly on `derivWeierstrassPRe_sq` (Lean
     otherwise unifies `t := Ω` from the `notMem_lattice_of_lt` argument). `push_neg` is deprecated
     in this Mathlib — `push Not` used instead.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: CLEANUP-4
 - **Parallel**: yes (with T013 only after this; with T014)
 - **Type**: lemmas (2 sorries: lines 180, 187)
@@ -699,7 +701,7 @@ Cubic written with `L.g₂.re`, `L.g₃.re`; no case split on Δ.
 - **Progress**:
   - 2026-09-08T18:48: DONE, first compile, exactly as sketched (`f'` had to be given explicitly).
     RealAxis.lean is now sorry-free; `integral_inv_sqrt_eq_half` is axiom-clean.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T012
 - **Parallel**: no
 - **Type**: lemmas (2 sorries: lines 193, 202)
@@ -750,7 +752,7 @@ a set integral (matches `leastRealPeriodIntegral`'s form).
 - **Progress**:
   - 2026-09-08T18:50: final per-file cleanup. Repacked one 101-char line. 337 lines, max width 100,
     no trailing whitespace, zero sorries, `lake build` clean, axioms clean.
-- **File**: FormalConjecturesTest/RealPeriod/RealAxis.lean
+- **File**: FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean
 - **Depends on**: T013
 - **Parallel**: no
 - **Type**: cleanup
@@ -762,7 +764,7 @@ a set integral (matches `leastRealPeriodIntegral`'s form).
 - **Status**: done (finished 2026-09-08T18:55Z)
 - **Progress**:
   - 2026-09-08T18:55: DONE, first compile, as sketched.
-- **File**: FormalConjecturesTest/RealPeriodIntegral.lean
+- **File**: FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean
 - **Depends on**: none
 - **Parallel**: yes
 - **Type**: lemmas (4 sorries: lines 54, 58, 63, 66)
@@ -807,7 +809,7 @@ Project `RealPeriod.lean` docstring; Existence.lean `weierstrassCurve_c₄` (dec
     opaque, so `L.isLeast_leastRealPeriod hL` displays `L.leastRealPeriod hL` while the goal has
     `W.leastRealPeriod`; they are definitionally equal (proof irrelevance), so ascribing the
     explicit type `IsLeast {x | ↑x ∈ L.lattice ∧ 0 < x} W.leastRealPeriod` to `hΩ` fixes it.
-- **File**: FormalConjecturesTest/RealPeriodIntegral.lean
+- **File**: FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean
 - **Depends on**: T013, T014
 - **Parallel**: no
 - **Type**: lemma (1 sorry: line 73)
@@ -825,14 +827,14 @@ lemma e₁_add_b₂_div_twelve : W.e₁ + W.b₂ / 12 =
 2. `have hroot := hL.isRoot_weierstrassPRe_half hΩ; have hmax := fun x hx ↦ hL.le_weierstrassPRe_half_of_isRoot hΩ (x := x) hx;
    rw [W.periodPair_map_g₂_re, W.periodPair_map_g₃_re] at hroot hmax`.
 3. `have key : W.e₁ = e - W.b₂ / 12 := W.e₁_eq_of_isRoot ?_ ?_`.
-   - root: `rw [Polynomial.IsRoot, W.eval_toPoly_twoTorsionPolynomial_sub]; exact hroot`
-     (`eval_toPoly_twoTorsionPolynomial_sub x : F.eval (x - b₂/12) = 4x³ - c₄/12 x - c₆/216`).
-   - maximal: `intro x hx hroot'`; `have := hmax (x + W.b₂ / 12) (by rw [← W.eval_toPoly_twoTorsionPolynomial_sub,
+   - root: `rw [Polynomial.IsRoot, W.eval_Ψ₂Sq_sub]; exact hroot`
+     (`eval_Ψ₂Sq_sub x : F.eval (x - b₂/12) = 4x³ - c₄/12 x - c₆/216`).
+   - maximal: `intro x hx hroot'`; `have := hmax (x + W.b₂ / 12) (by rw [← W.eval_Ψ₂Sq_sub,
      add_sub_cancel_right]; exact hroot')`; `linarith`.
 4. `linarith [key]` (or `rw [key]; ring`).
 
 #### Mathlib lemmas needed
-`WeierstrassCurve.e₁_eq_of_isRoot`, `WeierstrassCurve.eval_toPoly_twoTorsionPolynomial_sub` (PeriodIntegral.lean),
+`WeierstrassCurve.e₁_eq_of_isRoot`, `WeierstrassCurve.eval_Ψ₂Sq_sub` (PeriodIntegral.lean),
 `WeierstrassCurve.periodPair_map_isReal`, `PeriodPair.isLeast_leastRealPeriod` (RealPeriod.lean), `Polynomial.IsRoot`,
 `add_sub_cancel_right`, T012, T014.
 
@@ -864,7 +866,7 @@ Stated with `W.leastRealPeriod` (the project's definition) on the right so that 
   - 2026-09-08T19:10: DONE — `leastRealPeriodIntegral_eq_leastRealPeriod` and
     `realPeriodIntegral_eq_realPeriod` are proved, sorry-free, axioms
     propext/Classical.choice/Quot.sound only. Same `IsLeast` type-ascription trick as T015.
-- **File**: FormalConjecturesTest/RealPeriodIntegral.lean
+- **File**: FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean
 - **Depends on**: CLEANUP-ALL-1
 - **Parallel**: no
 - **Type**: theorem (2 sorries: lines 82, 87)
@@ -904,14 +906,14 @@ DLMF 23.6.34/36; Cremona §3.7 (decomposition R1, R2).
   - 2026-09-08T19:12: 119 lines, max width 99, no trailing whitespace, both public theorems have
     docstrings. Also updated the now-stale sentence in PeriodIntegral.lean's module docstring
     ("That the two versions agree is the uniformisation theorem, which is not proved here") to
-    point at `FormalConjecturesTest.RealPeriodIntegral`; the file still builds.
-- **File**: FormalConjecturesTest/RealPeriodIntegral.lean
+    point at `FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod`; the file still builds.
+- **File**: FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean
 - **Depends on**: T016
 - **Parallel**: no
 - **Type**: cleanup
 - **Description**: final per-file cleanup. Also decide (ask the user) whether to update the sentence "That the two
   versions agree is the uniformisation theorem, which is not proved here" in `PeriodIntegral.lean`'s docstring to
-  point at `FormalConjecturesTest.RealPeriodIntegral`.
+  point at `FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod`.
 
 ---
 

@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.NumberTheory.ModularForms.Discriminant
-import Mathlib.NumberTheory.ModularForms.NormTrace
+public import Mathlib.NumberTheory.ModularForms.Discriminant
+public import Mathlib.NumberTheory.ModularForms.NormTrace
+
+@[expose] public noncomputable section
 
 /-!
 # Surjectivity of the modular `j`-function
@@ -38,20 +41,17 @@ noncomputable section
 
 namespace ModularForm
 
-private abbrev E4 : ModularForm 𝒮ℒ 4 := ModularForm.E₄
-
-private abbrev Delta : CuspForm 𝒮ℒ 12 := CuspForm.discriminant
-
 /-- The modular $j$-function $E_4^3 / \Delta$. -/
-def j : ℍ → ℂ := fun τ ↦ (E4 τ) ^ 3 / Delta τ
+def j : ℍ → ℂ := fun τ ↦ (E₄ τ) ^ 3 / CuspForm.discriminant τ
 
 private lemma j_slashInvariant (γ : SL(2, ℤ)) : j ∣[(0 : ℤ)] γ = j := by
   ext z
   rw [slash_action_eq'_iff, j, j]
-  have h1 : E4 (γ • z) = ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ)) ^ (4 : ℤ) * E4 z :=
-    SlashInvariantForm.slash_action_eqn' E4 (MonoidHom.mem_range.mpr ⟨γ, rfl⟩) z
-  have h2 : Delta (γ • z) = ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ)) ^ (12 : ℤ) * Delta z :=
-    SlashInvariantForm.slash_action_eqn' Delta (MonoidHom.mem_range.mpr ⟨γ, rfl⟩) z
+  have h1 : E₄ (γ • z) = ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ)) ^ (4 : ℤ) * E₄ z :=
+    SlashInvariantForm.slash_action_eqn' E₄ (MonoidHom.mem_range.mpr ⟨γ, rfl⟩) z
+  have h2 : CuspForm.discriminant (γ • z) =
+      ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ)) ^ (12 : ℤ) * CuspForm.discriminant z :=
+    SlashInvariantForm.slash_action_eqn' CuspForm.discriminant (MonoidHom.mem_range.mpr ⟨γ, rfl⟩) z
   rw [h1, h2]
   have hden : ((γ 1 0 : ℂ) * z + (γ 1 1 : ℂ)) ≠ 0 := by
     simpa [ModularGroup.denom_apply] using denom_ne_zero γ z
@@ -60,13 +60,13 @@ private lemma j_slashInvariant (γ : SL(2, ℤ)) : j ∣[(0 : ℤ)] γ = j := by
 /-- $\Delta / q$, the product $\prod (1 - q^n)^{24}$. -/
 abbrev Deltaoverq : ℍ → ℂ := fun z ↦ ∏' (n : ℕ), (1 - ModularForm.eta_q n z) ^ 24
 
-lemma Delta_eq_q_mul_Deltaoverq (z : ℍ) : Delta z = 𝕢 1 z * Deltaoverq z := by
-  simpa [Delta, Deltaoverq] using ModularForm.discriminant_eq_q_prod z
+lemma Delta_eq_q_mul_Deltaoverq (z : ℍ) : CuspForm.discriminant z = 𝕢 1 z * Deltaoverq z := by
+  simpa [Deltaoverq] using ModularForm.discriminant_eq_q_prod z
 
 lemma Deltaoverq_ne_zero (z : ℍ) : Deltaoverq z ≠ 0 := by
   intro h
-  have hD : Delta z = 0 := by simp [Delta_eq_q_mul_Deltaoverq z, h]
-  exact ModularForm.discriminant_ne_zero z (by simpa [Delta] using hD)
+  have hD : CuspForm.discriminant z = 0 := by simp [Delta_eq_q_mul_Deltaoverq z, h]
+  exact ModularForm.discriminant_ne_zero z (by simpa using hD)
 
 /-- $q / \Delta$. -/
 def qoverDelta : ℍ → ℂ := fun z ↦ 1 / Deltaoverq z
@@ -74,12 +74,12 @@ def qoverDelta : ℍ → ℂ := fun z ↦ 1 / Deltaoverq z
 /-- $q \cdot j$. -/
 def qj : ℍ → ℂ := (fun z ↦ 𝕢 1 z : ℍ → ℂ) * j
 
-lemma qjIdentity : (fun z : ℍ => (E4 z) ^ 3) * qoverDelta = qj := by
+lemma qjIdentity : (fun z : ℍ => (E₄ z) ^ 3) * qoverDelta = qj := by
   ext z
   simp only [Pi.mul_apply, qj, j, qoverDelta]
-  have hDnz : Delta z ≠ 0 := by simpa [Delta] using ModularForm.discriminant_ne_zero z
+  have hDnz : CuspForm.discriminant z ≠ 0 := by simpa using ModularForm.discriminant_ne_zero z
   field_simp [hDnz, Deltaoverq_ne_zero z]
-  linear_combination E4 z ^ 3 * Delta_eq_q_mul_Deltaoverq z
+  linear_combination E₄ z ^ 3 * Delta_eq_q_mul_Deltaoverq z
 
 lemma Deltaoverq_tendsto_atImInfty : Tendsto Deltaoverq atImInfty (nhds (1 : ℂ)) := by
   simpa using ModularForm.tendsto_atImInfty_tprod_one_sub_eta_q_pow
@@ -90,38 +90,38 @@ lemma qoverDelta_tendsto_atImInfty : Tendsto qoverDelta atImInfty (nhds (1 : ℂ
   change Tendsto (fun τ : ℍ => (1 / Deltaoverq τ)) atImInfty (nhds (1 : ℂ))
   simpa [one_div] using h
 
-lemma E4_tendsto_atImInfty : Tendsto (E4 : ℍ → ℂ) atImInfty (nhds (1 : ℂ)) := by
-  have hper : Periodic ((E4 : ℍ → ℂ) ∘ UpperHalfPlane.ofComplex) 1 :=
-    SlashInvariantFormClass.periodic_comp_ofComplex E4 one_mem_strictPeriods_SL
-  have h0 : cuspFunction 1 (E4 : ℍ → ℂ) 0 = 1 := by
-    simpa [qExpansion_coeff, E4] using
+lemma E4_tendsto_atImInfty : Tendsto (E₄ : ℍ → ℂ) atImInfty (nhds (1 : ℂ)) := by
+  have hper : Periodic ((E₄ : ℍ → ℂ) ∘ UpperHalfPlane.ofComplex) 1 :=
+    SlashInvariantFormClass.periodic_comp_ofComplex E₄ one_mem_strictPeriods_SL
+  have h0 : cuspFunction 1 (E₄ : ℍ → ℂ) 0 = 1 := by
+    simpa [qExpansion_coeff] using
       (EisensteinSeries.E_qExpansion_coeff_zero (by norm_num : 3 ≤ 4) ⟨2, rfl⟩)
   simpa only [Function.comp_def, UpperHalfPlane.eq_cuspFunction _ one_ne_zero hper, h0] using
-    (ModularFormClass.analyticAt_cuspFunction_zero (h := (1 : ℝ)) E4 (by norm_num)
+    (ModularFormClass.analyticAt_cuspFunction_zero (h := (1 : ℝ)) E₄ (by norm_num)
       one_mem_strictPeriods_SL).continuousAt.tendsto.comp
       (UpperHalfPlane.qParam_tendsto_atImInfty (h := 1) (by norm_num))
 
 lemma j_MDifferentiable : MDiff j := by
   rw [UpperHalfPlane.mdifferentiable_iff]
   intro z hz
-  have hE4 : DifferentiableAt ℂ (E4 ∘ UpperHalfPlane.ofComplex) z :=
-    UpperHalfPlane.mdifferentiableAt_iff.mp (ModularFormClass.holo E4 ⟨z, hz⟩)
-  have hDelta : DifferentiableAt ℂ (Delta ∘ UpperHalfPlane.ofComplex) z :=
-    UpperHalfPlane.mdifferentiableAt_iff.mp (ModularFormClass.holo Delta ⟨z, hz⟩)
-  have hDelta0 : (Delta ∘ UpperHalfPlane.ofComplex) z ≠ 0 := by
-    simpa [comp, UpperHalfPlane.ofComplex_apply_of_im_pos hz, Delta] using
+  have hE4 : DifferentiableAt ℂ (E₄ ∘ UpperHalfPlane.ofComplex) z :=
+    UpperHalfPlane.mdifferentiableAt_iff.mp (ModularFormClass.holo E₄ ⟨z, hz⟩)
+  have hDelta : DifferentiableAt ℂ (CuspForm.discriminant ∘ UpperHalfPlane.ofComplex) z :=
+    UpperHalfPlane.mdifferentiableAt_iff.mp (ModularFormClass.holo CuspForm.discriminant ⟨z, hz⟩)
+  have hDelta0 : (CuspForm.discriminant ∘ UpperHalfPlane.ofComplex) z ≠ 0 := by
+    simpa [comp, UpperHalfPlane.ofComplex_apply_of_im_pos hz] using
       ModularForm.discriminant_ne_zero (UpperHalfPlane.ofComplex z)
   have hj : DifferentiableAt ℂ (j ∘ UpperHalfPlane.ofComplex) z :=
     (hE4.pow 3).div hDelta hDelta0
   exact hj.differentiableWithinAt
 
 theorem qj_tendsto_atImInfty : Tendsto qj atImInfty (nhds (1 : ℂ)) := by
-  have hE4 : Tendsto (fun τ : ℍ => (E4 τ) ^ 3) atImInfty (nhds ((1 : ℂ) ^ 3)) :=
+  have hE4 : Tendsto (fun τ : ℍ => (E₄ τ) ^ 3) atImInfty (nhds ((1 : ℂ) ^ 3)) :=
     E4_tendsto_atImInfty.pow 3
-  have hqj : Tendsto ((fun τ : ℍ => (E4 τ) ^ 3) * qoverDelta) atImInfty
+  have hqj : Tendsto ((fun τ : ℍ => (E₄ τ) ^ 3) * qoverDelta) atImInfty
       (nhds ((1 : ℂ) ^ 3 * 1)) :=
     hE4.mul qoverDelta_tendsto_atImInfty
-  have hEq : ((fun τ : ℍ => (E4 τ) ^ 3) * qoverDelta) = qj := by
+  have hEq : ((fun τ : ℍ => (E₄ τ) ^ 3) * qoverDelta) = qj := by
     ext τ
     exact congrFun qjIdentity τ
   simpa [hEq] using hqj

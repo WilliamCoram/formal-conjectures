@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,16 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.Analysis.Analytic.IsolatedZeros
-import Mathlib.Analysis.Calculus.ContDiff.RCLike
-import Mathlib.Analysis.Calculus.Deriv.Shift
-import Mathlib.Analysis.Normed.Module.Connected
-import Mathlib.Analysis.ODE.ExistUnique
-import Mathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass
-import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import Mathlib.Topology.Compactness.Lindelof
-import FormalConjecturesTest.RealPeriod.Uniqueness
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Uniqueness
+public import Mathlib.Analysis.Analytic.IsolatedZeros
+public import Mathlib.Analysis.Calculus.ContDiff.RCLike
+public import Mathlib.Analysis.Calculus.Deriv.Shift
+public import Mathlib.Analysis.Normed.Module.Connected
+public import Mathlib.Analysis.ODE.ExistUnique
+public import Mathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass
+public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+public import Mathlib.Topology.Compactness.Lindelof
+
+@[expose] public noncomputable section
 
 /-!
 # The zeros of $\wp'$ are the half-periods

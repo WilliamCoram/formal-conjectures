@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
-import Mathlib.Data.Real.Basic
+public import Mathlib.AlgebraicGeometry.EllipticCurve.Weierstrass
+public import Mathlib.Data.Real.Basic
+
+@[expose] public noncomputable section
 
 /-!
 # The number of real components of an elliptic curve
@@ -27,10 +30,14 @@ bounded oval and the unbounded component through the point at infinity), and one
 `WeierstrassCurve.nrRealComponents`, by the discriminant criterion; the topological
 statement is not proved here.
 
-The real period of $E$ in the Birch and Swinnerton-Dyer conjecture is the least positive real
-period multiplied by this number: `WeierstrassCurve.realPeriod` (from the period lattice, in
-`FormalConjecturesTest.RealPeriod`) and `WeierstrassCurve.realPeriodIntegral` (from the integral
-of the invariant differential, in `FormalConjecturesTest.PeriodIntegral`).
+This number is the real Tamagawa number $c_\infty$. The real period of $E$ in the Birch and
+Swinnerton-Dyer conjecture is the least positive real period multiplied by it, which is how
+`WeierstrassCurve.realPeriod` is defined from the period lattice in
+`FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodLattice`. The integral
+definition `WeierstrassCurve.realPeriodIntegral`, in
+`FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral`, instead integrates
+over all of $E(\mathbb{R})$ at once and *proves* the factor $c_\infty$; the two agree by
+`WeierstrassCurve.realPeriodIntegral_eq_realPeriod`.
 
 *References:*
 - [LMFDB](https://beta.lmfdb.org/knowledge/show/ec.q.period_lattice), knowls `ec.q.period_lattice`

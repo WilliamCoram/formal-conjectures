@@ -1,5 +1,5 @@
 /-
-Copyright 2025 The Formal Conjectures Authors.
+Copyright 2026 The Formal Conjectures Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -/
+module
 
-import Mathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass
-import Mathlib.NumberTheory.ModularForms.LevelOne.GradedRing
+public import Mathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass
+public import Mathlib.NumberTheory.ModularForms.LevelOne.GradedRing
+
+@[expose] public noncomputable section
 
 /-!
 # Lattice Eisenstein series as modular forms, and the discriminant of a lattice

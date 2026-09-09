@@ -5,26 +5,33 @@ Project: `formal-conjectures`, branch `periods`. Written 2026-09-08 by `/develop
 ## Skeleton location
 
 Every lemma below exists as a `:= by sorry` declaration in
-- `FormalConjecturesTest/RealPeriod/HalfPeriods.lean` (zeros of ℘' are the half-periods; ℘'' equation)
-- `FormalConjecturesTest/RealPeriod/RealAxis.lean` (℘ of a real lattice on the real axis; the elliptic integral)
-- `FormalConjecturesTest/RealPeriodIntegral.lean` (the two `WeierstrassCurve` real periods agree)
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean` (zeros of ℘' are the half-periods; ℘'' equation)
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean` (℘ of a real lattice on the real axis; the elliptic integral)
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean` (the two `WeierstrassCurve` real periods agree)
 
-`lake build FormalConjecturesTest.RealPeriod.HalfPeriods FormalConjecturesTest.RealPeriod.RealAxis
-FormalConjecturesTest.RealPeriodIntegral` succeeded on 2026-09-08 (Lean v4.33.1, Mathlib v4.33.1) with
-no warnings or errors. The test library sets `warn.sorry = false`, so sorries are silent; there are 44
-sorried declarations (every `lemma`/`theorem` except `derivWeierstrassP_eq_zero_iff`, which is already
-the assembly `⟨…, …⟩`).
+`lake build FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.HalfPeriods
+FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.RealAxis
+FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod` succeeded on 2026-09-08 (Lean v4.33.1, Mathlib v4.33.1) with
+no warnings or errors. At that point the files lived in `FormalConjecturesTest`, whose
+`warn.sorry = false` silenced sorries, and there were 44 sorried declarations (every
+`lemma`/`theorem` except `derivWeierstrassP_eq_zero_iff`, which is already the assembly `⟨…, …⟩`).
+All of them are now discharged and the development has moved to `FormalConjecturesForMathlib`; the
+paths below are the current ones.
 
 Existing project code used (all sorry-free, built):
-- `FormalConjecturesTest/PeriodIntegral.lean`: `WeierstrassCurve.e₁`, `e₁_eq_of_isRoot`,
-  `eval_toPoly_twoTorsionPolynomial_sub`, `leastRealPeriodIntegral_eq_integral_depressed`,
-  `realPeriodIntegral`, `leastRealPeriodIntegral`.
-- `FormalConjecturesTest/RealPeriod.lean`: `WeierstrassCurve.periodPair` (= `PeriodPair.ofCoeffs
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/DivisionPolynomial/Real.lean`:
+  `WeierstrassCurve.e₁`, `e₁_eq_of_isRoot`.
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/PeriodIntegral.lean`:
+  `realPeriodIntegrand`, `leastRealPeriodIntegral`, `realPeriodIntegral`,
+  `realPeriodIntegral_of_pos`, `realPeriodIntegral_of_neg`.
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean`: `eval_Ψ₂Sq_sub`,
+  `leastRealPeriodIntegral_eq_integral_depressed` (both moved here in the restructure).
+- `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/PeriodLattice.lean`: `WeierstrassCurve.periodPair` (= `PeriodPair.ofCoeffs
   W.shortModel_discr_ne_zero` = `(PeriodPair.exists_g₂_g₃ _).choose`), `periodPair_map_isReal`,
   `leastRealPeriod`, `realPeriod`, `PeriodPair.leastRealPeriod`, `isLeast_leastRealPeriod`.
-- `FormalConjecturesTest/RealPeriod/Conjugation.lean`: `conjugate`, `mem_conjugate_lattice`,
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/Conjugation.lean`: `conjugate`, `mem_conjugate_lattice`,
   `conjugateLatticeEquiv`, `IsReal`, `IsReal.conj_g₂`, `IsReal.conj_g₃`, `G_conjugate` (proof pattern).
-- `FormalConjecturesTest/RealPeriod/Uniqueness.lean`: `eventually_notMem_lattice`, `weierstrassP_eq`,
+- `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/Uniqueness.lean`: `eventually_notMem_lattice`, `weierstrassP_eq`,
   `derivWeierstrassPExcept_zero_eq`, `eventually_derivWeierstrassP_ne_zero`,
   `eventually_deriv_derivWeierstrassP`, `lattice_le_of_eqOn` (proof pattern for the order argument).
 - Mathlib `Mathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass.lean` (`PeriodPair.*`).
@@ -64,7 +71,7 @@ it is flagged again at H8–H10 below.
 ## Top-level results
 
 - **R1** `WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`
-  (`FormalConjecturesTest/RealPeriodIntegral.lean:82`)
+  (`FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean:82`)
 - **R2** `WeierstrassCurve.realPeriodIntegral_eq_realPeriod` (`…/RealPeriodIntegral.lean:87`) — assembly:
   both sides are `nrRealComponents * (least period)`; one `rw [realPeriodIntegral, realPeriod, R1]`.
 
@@ -73,7 +80,7 @@ it is flagged again at H8–H10 below.
 Let `E/ℝ` be elliptic with two-torsion cubic `F(x) = 4x³ + b₂x² + 2b₄x + b₆`, largest real root `e₁`
 (`WeierstrassCurve.e₁`). The substitution `x = X − b₂/12` turns `F` into the depressed cubic
 `Q(X) = 4X³ − g₂X − g₃` with `g₂ = c₄/12`, `g₃ = c₆/216` (project lemma
-`eval_toPoly_twoTorsionPolynomial_sub`), so `leastRealPeriodIntegral = 2 ∫_{e₁ + b₂/12}^∞ dX/√Q(X)`
+`eval_Ψ₂Sq_sub`), so `leastRealPeriodIntegral = 2 ∫_{e₁ + b₂/12}^∞ dX/√Q(X)`
 (project lemma `leastRealPeriodIntegral_eq_integral_depressed`). Let `Λ` be the period lattice of `E`,
 i.e. the lattice with invariants `g₂, g₃` (`WeierstrassCurve.periodPair`; F1, F2 below). Since `g₂, g₃`
 are real, `Λ` is real (`periodPair_map_isReal`), and DLMF 23.5(i): "The Weierstrass functions take real
@@ -113,7 +120,7 @@ variables `integral_image_eq_integral_abs_deriv_smul`). Hence `leastRealPeriodIn
 
 ---
 
-## File `FormalConjecturesTest/RealPeriod/HalfPeriods.lean`
+## File `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/HalfPeriods.lean`
 
 ### H0 (leaf, mathlib): `Complex.isPreconnected_compl_of_countable`
 - Lean: `HalfPeriods.lean:62` — `{s : Set ℂ} (hs : s.Countable) : IsPreconnected sᶜ`
@@ -252,7 +259,7 @@ variables `integral_image_eq_integral_abs_deriv_smul`). Hence `leastRealPeriodIn
 
 ---
 
-## File `FormalConjecturesTest/RealPeriod/RealAxis.lean`
+## File `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/RealAxis.lean`
 
 ### R1 (leaf, mathlib+project): `weierstrassP_conjugate` — `RealAxis.lean:70`
 - `(z : ℂ) : ℘[L.conjugate] z = conj (℘[L] (conj z))`.
@@ -416,7 +423,7 @@ R8`.continuousAt`; `(L.hasDerivAt_derivWeierstrassP ht).real_of_complex.continuo
 
 ---
 
-## File `FormalConjecturesTest/RealPeriodIntegral.lean`
+## File `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean`
 
 ### F1, F2 (leaves, project): `periodPair_g₂`, `periodPair_g₃` — `RealPeriodIntegral.lean:54,58`
 - `W.periodPair.g₂ = W.c₄ / 12`, `W.periodPair.g₃ = W.c₆ / 216` for `W : WeierstrassCurve ℂ` elliptic.
@@ -440,8 +447,8 @@ R8`.continuousAt`; `(L.hasDerivAt_derivWeierstrassP ht).real_of_complex.continuo
 - Composition: `W.e₁_eq_of_isRoot (he : IsRoot F (e − b₂/12)) (h : ∀ x, e − b₂/12 < x → ¬IsRoot F x)`
   (`PeriodIntegral.lean`, sorry-free) where `e := L.weierstrassPRe (Ω/2)`, `Ω := W.leastRealPeriod`
   (`= L.leastRealPeriod W.periodPair_map_isReal`, `hΩ := L.isLeast_leastRealPeriod _`):
-  `he` from `eval_toPoly_twoTorsionPolynomial_sub e` and R19 + F1', F2'; `h` from
-  `eval_toPoly_twoTorsionPolynomial_sub (x + b₂/12)` (`add_sub_cancel_right`) and R20 + F1', F2'
+  `he` from `eval_Ψ₂Sq_sub e` and R19 + F1', F2'; `h` from
+  `eval_Ψ₂Sq_sub (x + b₂/12)` (`add_sub_cancel_right`) and R20 + F1', F2'
   (`x + b₂/12 ≤ e`, `linarith`). Then `sub_add_cancel`.
 - Composition attacks: is `W.e₁` the sup of roots of `F` (not of `Q`)? Yes (`e₁ := sSup {x | IsRoot F x}`),
   and roots correspond by the shift ✓ both directions. `IsReal` needed for R19/R20: `W.periodPair_map_isReal` ✓.
