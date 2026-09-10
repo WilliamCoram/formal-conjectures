@@ -58,32 +58,34 @@ two. -/
 def integralPeriodLattice : Set ℂ :=
   curveIntegralPeriods W.invariantDifferential W.affineNonTwoTorsion
 
+/-- A complex number is a period of `W` exactly when it is the integral of the invariant
+differential along some $C^1$ loop on the affine curve which avoids the points of order two. -/
 lemma mem_integralPeriodLattice_iff {w : ℂ} : w ∈ W.integralPeriodLattice ↔
     ∃ (p : ℂ × ℂ) (γ : Path p p), ContDiffOn ℝ 1 γ.extend I ∧
       range γ ⊆ W.affineNonTwoTorsion ∧ ∫ᶜ x in γ, W.invariantDifferential x = w :=
   Iff.rfl
 
+/-- Over `ℂ` every Weierstrass curve has an affine point which is not of order two. -/
 lemma affineNonTwoTorsion_nonempty : W.affineNonTwoTorsion.Nonempty := by
-  have h4 : (4 : ℂ) ≠ 0 := by norm_num
   obtain ⟨x, hx⟩ : ∃ x : ℂ, ¬ W.Ψ₂Sq.IsRoot x :=
-    (Polynomial.finite_setOfPred_isRoot (W.Ψ₂Sq_ne_zero h4)).infinite_compl.nonempty
+    (Polynomial.finite_setOfPred_isRoot (W.Ψ₂Sq_ne_zero (by norm_num))).infinite_compl.nonempty
   obtain ⟨s, hs⟩ := IsAlgClosed.exists_pow_nat_eq (W.Ψ₂Sq.eval x) two_pos
   have hs0 : s ≠ 0 := by
     rintro rfl
     exact hx (by simpa [Polynomial.IsRoot] using hs.symm)
   refine ⟨(x, (s - W.a₁ * x - W.a₃) / 2), ?_, ?_⟩
-  · rw [WeierstrassCurve.Affine.equation_iff]
+  · rw [Affine.equation_iff]
     simp only [Ψ₂Sq, Polynomial.eval_add, Polynomial.eval_mul, Polynomial.eval_pow,
       Polynomial.eval_C, Polynomial.eval_X, b₂, b₄, b₆] at hs
-    simp only [WeierstrassCurve.toAffine]
+    simp only [toAffine]
     linear_combination hs / 4
-  · show 2 * ((s - W.a₁ * x - W.a₃) / 2) + W.a₁ * x + W.a₃ ≠ 0
-    rw [show 2 * ((s - W.a₁ * x - W.a₃) / 2) + W.a₁ * x + W.a₃ = s by ring]
-    exact hs0
+  · rwa [show 2 * ((s - W.a₁ * x - W.a₃) / 2) + W.a₁ * x + W.a₃ = s by ring]
 
+/-- Zero is a period of `W`. -/
 lemma zero_mem_integralPeriodLattice : 0 ∈ W.integralPeriodLattice :=
   zero_mem_curveIntegralPeriods W.affineNonTwoTorsion_nonempty
 
+/-- The periods of `W` are stable under negation. -/
 lemma neg_mem_integralPeriodLattice {w : ℂ} (hw : w ∈ W.integralPeriodLattice) :
     -w ∈ W.integralPeriodLattice :=
   neg_mem_curveIntegralPeriods hw
@@ -91,10 +93,10 @@ lemma neg_mem_integralPeriodLattice {w : ℂ} (hw : w ∈ W.integralPeriodLattic
 /-- The change of variables to the short model preserves the periods. -/
 theorem integralPeriodLattice_shortModel :
     W.shortModel.integralPeriodLattice = W.integralPeriodLattice := by
-  have himg : W.shortModel.affineNonTwoTorsion
-      = (fun p ↦ W.toShortModelLinear p + (W.b₂ / 12, W.a₃ / 2)) '' W.affineNonTwoTorsion := by
+  have himg : W.shortModel.affineNonTwoTorsion =
+      (fun p ↦ W.toShortModelLinear p + (W.b₂ / 12, W.a₃ / 2)) '' W.affineNonTwoTorsion := by
     rw [← W.image_toShortModel_affineNonTwoTorsion]
-    exact Set.image_congr fun p _ ↦ W.toShortModel_eq p
+    exact image_congr fun p _ ↦ W.toShortModel_eq p
   simp only [integralPeriodLattice, himg, curveIntegralPeriods_image_add_const]
   congr 1
   funext p

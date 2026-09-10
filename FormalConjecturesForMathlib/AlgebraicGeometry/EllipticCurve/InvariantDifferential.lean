@@ -75,6 +75,8 @@ On this set the invariant differential is $dx / (2y + a_1 x + a_3)$. -/
 def affineNonTwoTorsion : Set (R × R) :=
   {p | W.toAffine.Equation p.1 p.2 ∧ 2 * p.2 + W.a₁ * p.1 + W.a₃ ≠ 0}
 
+/-- Membership in `WeierstrassCurve.affineNonTwoTorsion` spelled out: `p` is an affine point of
+`W` at which $2y + a_1 x + a_3 \neq 0$. -/
 lemma mem_affineNonTwoTorsion {p : R × R} : p ∈ W.affineNonTwoTorsion ↔
     W.toAffine.Equation p.1 p.2 ∧ 2 * p.2 + W.a₁ * p.1 + W.a₃ ≠ 0 :=
   Iff.rfl
@@ -98,6 +100,7 @@ def shortModel : WeierstrassCurve F where
 def toShortModel (p : F × F) : F × F :=
   (p.1 + W.b₂ / 12, p.2 + (W.a₁ * p.1 + W.a₃) / 2)
 
+/-- `WeierstrassCurve.toShortModel` in coordinates. -/
 @[simp]
 lemma toShortModel_apply (p : F × F) :
     W.toShortModel p = (p.1 + W.b₂ / 12, p.2 + (W.a₁ * p.1 + W.a₃) / 2) :=
@@ -121,47 +124,9 @@ lemma eval_Ψ₂Sq_sub (x : F) :
   field_simp
   ring
 
-example : True := by
-  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := fun _ _ _ hc ↦ hc ▸ NeZero.ne _
-  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
-  trivial
-
-example : True := by
-  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := by
-    rintro m n c rfl
-    exact NeZero.ne _
-  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
-  have h864 : (864 : F) ≠ 0 := hne 5 3 _ (by norm_num)
-  trivial
-
-example (p : F × F) : 2 * (p.2 + (W.a₁ * p.1 + W.a₃) / 2) + W.shortModel.a₁ * (p.1 + W.b₂ / 12)
-    + W.shortModel.a₃ = 2 * p.2 + W.a₁ * p.1 + W.a₃ := by
-  simp only [shortModel]
-  field_simp
-  ring
-
-example (p : F × F) : 2 * (p.2 + (W.a₁ * p.1 + W.a₃) / 2) + W.shortModel.a₁ * (p.1 + W.b₂ / 12)
-    + W.shortModel.a₃ = 2 * p.2 + W.a₁ * p.1 + W.a₃ := by
-  simp [shortModel]
-  ring
-
-example (p : F × F) : (p.2 + (W.a₁ * p.1 + W.a₃) / 2) ^ 2
-      + W.shortModel.a₁ * (p.1 + W.b₂ / 12) * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
-      + W.shortModel.a₃ * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
-      - ((p.1 + W.b₂ / 12) ^ 3 + W.shortModel.a₂ * (p.1 + W.b₂ / 12) ^ 2
-        + W.shortModel.a₄ * (p.1 + W.b₂ / 12) + W.shortModel.a₆)
-    = p.2 ^ 2 + W.a₁ * p.1 * p.2 + W.a₃ * p.2
-      - (p.1 ^ 3 + W.a₂ * p.1 ^ 2 + W.a₄ * p.1 + W.a₆) := by
-  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := by
-    rintro m n c rfl
-    exact NeZero.ne _
-  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
-  have h48 : (48 : F) ≠ 0 := hne 4 1 _ (by norm_num)
-  have h864 : (864 : F) ≠ 0 := hne 5 3 _ (by norm_num)
-  simp only [shortModel, c₄, c₆, b₂, b₄, b₆]
-  field_simp
-  ring
-
+/-- The change of variables to the short model carries the non-2-torsion locus of `W` onto that of
+`W.shortModel`: the point `W.toShortModel p` is an affine point of `W.shortModel` not of order two
+exactly when `p` is one of `W`. -/
 lemma toShortModel_mem_affineNonTwoTorsion_iff {p : F × F} :
     W.toShortModel p ∈ W.shortModel.affineNonTwoTorsion ↔ p ∈ W.affineNonTwoTorsion := by
   have h2 : (2 : F) ≠ 0 := NeZero.ne 2
@@ -195,7 +160,6 @@ lemma toShortModel_mem_affineNonTwoTorsion_iff {p : F × F} :
   refine and_congr ?_ Iff.rfl
   rw [← sub_eq_zero, ← sub_eq_zero (a := p.2 ^ 2 + W.a₁ * p.1 * p.2 + W.a₃ * p.2), hdiff]
 
-
 /-- The change of variables to the short model is a bijection from the non-2-torsion locus of `W`
 onto that of its short model. -/
 lemma image_toShortModel_affineNonTwoTorsion :
@@ -220,11 +184,15 @@ plane $F \times F$; it is $0$ at points where $2y + a_1 x + a_3 = 0$. -/
 def invariantDifferential (p : F × F) : (F × F) →L[F] F :=
   (2 * p.2 + W.a₁ * p.1 + W.a₃)⁻¹ • ContinuousLinearMap.fst F F F
 
+/-- The invariant differential of `W` at `p`, evaluated on a tangent vector `v`: it reads off the
+$x$-component of `v` and divides by $2y + a_1 x + a_3$. -/
 @[simp]
 lemma invariantDifferential_apply (p v : F × F) :
     W.invariantDifferential p v = v.1 / (2 * p.2 + W.a₁ * p.1 + W.a₃) := by
   simp [invariantDifferential, div_eq_inv_mul]
 
+/-- The invariant differential is continuous away from the affine points of order two, where its
+denominator vanishes. -/
 lemma continuousOn_invariantDifferential :
     ContinuousOn W.invariantDifferential W.affineNonTwoTorsion := by
   show ContinuousOn (fun p : F × F ↦ (2 * p.2 + W.a₁ * p.1 + W.a₃)⁻¹ •
@@ -245,12 +213,15 @@ def toShortModelLinear : (F × F) ≃L[F] (F × F) :=
     (fun p ↦ by ext <;> simp) (fun p ↦ by ext <;> simp)
 
 omit [NeZero (2 : F)] in
+/-- `WeierstrassCurve.toShortModelLinear` in coordinates. -/
 @[simp]
 lemma toShortModelLinear_apply (p : F × F) :
     W.toShortModelLinear p = (p.1, p.2 + W.a₁ / 2 * p.1) := by
   ext <;> simp [toShortModelLinear]
 
 omit [NeZero (2 : F)] in
+/-- The change of variables to the short model is its linear part
+`WeierstrassCurve.toShortModelLinear` followed by the translation by $(b_2 / 12, a_3 / 2)$. -/
 lemma toShortModel_eq (p : F × F) :
     W.toShortModel p = W.toShortModelLinear p + (W.b₂ / 12, W.a₃ / 2) := by
   refine Prod.ext rfl ?_
@@ -269,34 +240,6 @@ lemma invariantDifferential_shortModel_comp (p : F × F) :
     shortModel]
   congr 1
   linear_combination hhalf
-
-example (p : F × F) :
-    (W.shortModel.invariantDifferential (W.toShortModel p)).comp
-      (W.toShortModelLinear : (F × F) →L[F] (F × F)) = W.invariantDifferential p := by
-  refine ContinuousLinearMap.ext fun v ↦ ?_
-  simp only [ContinuousLinearMap.comp_apply, invariantDifferential_apply, toShortModel_apply,
-    shortModel]
-  congr 1
-  field_simp
-  ring
-
-example (p : F × F) :
-    (W.shortModel.invariantDifferential (W.toShortModel p)).comp
-      (W.toShortModelLinear : (F × F) →L[F] (F × F)) = W.invariantDifferential p := by
-  refine ContinuousLinearMap.ext fun v ↦ ?_
-  simp only [ContinuousLinearMap.comp_apply, invariantDifferential_apply, toShortModel_apply,
-    shortModel]
-  congr 1
-  field_simp
-
-omit [NeZero (2 : F)] in
-example : (F × F) ≃L[F] (F × F) :=
-  ContinuousLinearEquiv.equivOfInverse
-    ((ContinuousLinearMap.fst F F F).prod
-      (ContinuousLinearMap.snd F F F + (W.a₁ / 2) • ContinuousLinearMap.fst F F F))
-    ((ContinuousLinearMap.fst F F F).prod
-      (ContinuousLinearMap.snd F F F - (W.a₁ / 2) • ContinuousLinearMap.fst F F F))
-    (fun _ ↦ by ext <;> simp) (fun _ ↦ by ext <;> simp)
 
 end NormedField
 
