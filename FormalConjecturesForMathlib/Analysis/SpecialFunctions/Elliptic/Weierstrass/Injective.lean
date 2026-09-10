@@ -68,12 +68,11 @@ lemma eventually_weierstrassP_add_eq_add {a b : ℂ} (ha : a ∉ L.lattice) (hb 
     have hv1 : ContDiff ℂ 1 (v 0) := by fun_prop
     exact hv1.contDiffAt.exists_lipschitzOnWith
   have hcont : ∀ᶠ t : ℝ in 𝓝 0, a + (t : ℂ) ∉ L.lattice ∧ b + (t : ℂ) ∉ L.lattice := by
-    have hta : Filter.Tendsto (fun t : ℝ ↦ a + (t : ℂ)) (𝓝 0) (𝓝 a) := by
-      have h : ContinuousAt (fun t : ℝ ↦ a + (t : ℂ)) 0 := by fun_prop
+    have key : ∀ c : ℂ, Filter.Tendsto (fun t : ℝ ↦ c + (t : ℂ)) (𝓝 0) (𝓝 c) := fun c ↦ by
+      have h : ContinuousAt (fun t : ℝ ↦ c + (t : ℂ)) 0 := by fun_prop
       simpa using h.tendsto
-    have htb : Filter.Tendsto (fun t : ℝ ↦ b + (t : ℂ)) (𝓝 0) (𝓝 b) := by
-      have h : ContinuousAt (fun t : ℝ ↦ b + (t : ℂ)) 0 := by fun_prop
-      simpa using h.tendsto
+    have hta := key a
+    have htb := key b
     exact (hta.eventually (L.isClosed_lattice.isOpen_compl.mem_nhds ha)).and
       (htb.eventually (L.isClosed_lattice.isOpen_compl.mem_nhds hb))
   have hfd : ∀ᶠ t : ℝ in 𝓝 0, HasDerivAt f (v t (f t)) t := by
@@ -141,7 +140,7 @@ theorem mem_lattice_of_forall_weierstrassP_add_eq {c : ℂ}
     exact hca.preimage_mem_nhds (by simpa using L.isClosed_lattice.isOpen_compl.mem_nhds hc)
   have hev : ℘[L] =ᶠ[𝓝[≠] (0 : ℂ)] fun w ↦ ℘[L] (c - w) := by
     filter_upwards [L.eventually_notMem_lattice, mem_nhdsWithin_of_mem_nhds hnear] with w hw hw2
-    have hnw : -w ∉ L.lattice := fun hmem ↦ hw (by simpa using neg_mem hmem)
+    have hnw : -w ∉ L.lattice := fun hmem ↦ hw (neg_mem_iff.mp hmem)
     have hnwc : -w + c ∉ L.lattice := by rwa [show -w + c = c - w by ring]
     have hh := h (-w) hnw hnwc
     rw [show -w + c = c - w by ring, L.weierstrassP_neg] at hh
@@ -171,7 +170,7 @@ theorem weierstrassP_eq_iff {a b : ℂ} (ha : a ∉ L.lattice) (hb : b ∉ L.lat
       rw [L.derivWeierstrassP_sq a ha, L.derivWeierstrassP_sq b hb, h]
     rcases sq_eq_sq_iff_eq_or_eq_neg.mp hsq with h' | h'
     · exact Or.inl (L.sub_mem_lattice_of_weierstrassP_eq_of_derivWeierstrassP_eq ha hb h h')
-    · have hnb : -b ∉ L.lattice := fun hmem ↦ hb (by simpa using neg_mem hmem)
+    · have hnb : -b ∉ L.lattice := fun hmem ↦ hb (neg_mem_iff.mp hmem)
       have h1 : ℘[L] a = ℘[L] (-b) := by rw [L.weierstrassP_neg, h]
       have h2 : ℘'[L] a = ℘'[L] (-b) := by rw [L.derivWeierstrassP_neg, h']
       exact Or.inr (by simpa [sub_neg_eq_add] using

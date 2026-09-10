@@ -52,48 +52,28 @@ variable (L : PeriodPair)
 /-- $\wp$ tends to infinity at the lattice points. -/
 lemma tendsto_weierstrassP_cobounded {l : ℂ} (hl : l ∈ L.lattice) :
     Tendsto ℘[L] (𝓝[≠] l) (Bornology.cobounded ℂ) :=
-  tendsto_cobounded_of_meromorphicOrderAt_neg (by rw [L.order_weierstrassP l hl]; decide)
+  tendsto_cobounded_of_meromorphicOrderAt_neg <| (L.order_weierstrassP l hl).trans_lt (by decide)
 
 /-- If $\wp$ omits the value $c$ off the lattice, then $1 / (\wp - c)$, extended by $0$ on the
 lattice, is entire. -/
 lemma differentiable_inv_weierstrassP_sub (c : ℂ) (hc : ∀ z, z ∉ L.lattice → ℘[L] z ≠ c) :
     Differentiable ℂ ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹) := by
   have hoff : ∀ z ∉ L.lattice, DifferentiableAt ℂ
-      ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹) z := by
-    intro z hz
-    refine DifferentiableAt.congr_of_eventuallyEq
-      (((L.analyticOnNhd_weierstrassP z hz).differentiableAt.sub_const c).inv
-        (sub_ne_zero.mpr (hc z hz))) ?_
-    filter_upwards [L.isClosed_lattice.isOpen_compl.mem_nhds hz] with w hw
-    exact Set.indicator_of_mem hw _
+      ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹) z := fun z hz ↦
+    (((L.analyticOnNhd_weierstrassP z hz).differentiableAt.sub_const c).inv
+      (sub_ne_zero.mpr (hc z hz))).congr_of_eventuallyEq
+      (Set.eqOn_indicator.eventuallyEq_of_mem <| L.isClosed_lattice.isOpen_compl.mem_nhds hz)
   intro z
   by_cases hz : z ∈ L.lattice
-  · have hpunct : ∀ᶠ w in 𝓝[≠] z, w ∉ L.lattice := by
-      filter_upwards [mem_nhdsWithin_of_mem_nhds (L.compl_lattice_sdiff_singleton_mem_nhds z),
-        self_mem_nhdsWithin] with w hw hw2 hmem
-      exact hw ⟨hmem, hw2⟩
-    have hcob : Tendsto (fun w ↦ ℘[L] w - c) (𝓝[≠] z) (Bornology.cobounded ℂ) := by
-      rw [← tendsto_norm_atTop_iff_cobounded]
-      refine tendsto_atTop_mono (fun w ↦ ?_)
-        (tendsto_atTop_add_const_right _ (-‖c‖)
-          (tendsto_norm_atTop_iff_cobounded.mpr (L.tendsto_weierstrassP_cobounded hz)))
-      simpa [sub_eq_add_neg] using norm_sub_norm_le (℘[L] w) c
-    have hgz : (L.lattice : Set ℂ)ᶜ.indicator (fun z ↦ (℘[L] z - c)⁻¹) z = 0 :=
-      Set.indicator_of_notMem (by simpa using hz) _
-    have htend : Tendsto ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹)
-        (𝓝[≠] z) (𝓝 0) := by
-      refine (tendsto_inv₀_cobounded.comp hcob).congr' ?_
-      filter_upwards [hpunct] with w hw
-      exact (Set.indicator_of_mem (by simpa using hw) _).symm
-    have hpure : Tendsto ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹)
-        (pure z) (𝓝 0) := by
-      have := tendsto_pure_nhds ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹) z
-      rwa [hgz] at this
-    have hcont : ContinuousAt ((L.lattice : Set ℂ)ᶜ.indicator fun z ↦ (℘[L] z - c)⁻¹) z := by
-      rw [ContinuousAt, hgz, ← nhdsNE_sup_pure z, Filter.tendsto_sup]
-      exact ⟨htend, hpure⟩
-    exact (Complex.analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
-      (by filter_upwards [hpunct] with w hw using hoff w hw) hcont).differentiableAt
+  · have hpunct : (L.lattice : Set ℂ)ᶜ ∈ 𝓝[≠] z :=
+      mem_of_superset (inter_mem_nhdsWithin _ (L.compl_lattice_sdiff_singleton_mem_nhds z))
+        fun w ⟨hne, hw⟩ hmem ↦ hw ⟨hmem, hne⟩
+    refine (Complex.analyticAt_of_differentiable_on_punctured_nhds_of_continuousAt
+      (eventually_of_mem hpunct hoff) <| continuousWithinAt_compl_self.mp ?_).differentiableAt
+    rw [ContinuousWithinAt, Set.indicator_of_notMem (Set.notMem_compl_iff.mpr hz)]
+    exact (tendsto_inv₀_cobounded.comp <| (tendsto_sub_const_cobounded c).comp
+      (L.tendsto_weierstrassP_cobounded hz)).congr'
+        (Set.eqOn_indicator.symm.eventuallyEq_of_mem hpunct)
   · exact hoff z hz
 
 /-- **$\wp$ is surjective**: every complex number is a value of $\wp$ off the lattice. -/
@@ -106,15 +86,15 @@ theorem exists_weierstrassP_eq (c : ℂ) : ∃ z, z ∉ L.lattice ∧ ℘[L] z =
         = (L.lattice : Set ℂ)ᶜ.indicator (fun z ↦ (℘[L] z - c)⁻¹) z := by
     intro z w hw
     by_cases hz : z ∈ L.lattice
-    · rw [Set.indicator_of_notMem (by simpa using add_mem hz hw),
-        Set.indicator_of_notMem (by simpa using hz)]
+    · rw [Set.indicator_of_notMem (Set.notMem_compl_iff.mpr (add_mem hz hw)),
+        Set.indicator_of_notMem (Set.notMem_compl_iff.mpr hz)]
     · have hzw : z + w ∉ L.lattice := fun h ↦ hz (by simpa using sub_mem h hw)
       rw [Set.indicator_of_mem (by simpa using hzw), Set.indicator_of_mem (by simpa using hz),
         L.weierstrassP_add_coe z ⟨w, hw⟩]
   have hb := (IsZLattice.isCompact_range_of_periodic L.lattice _ hg.continuous hper).isBounded
   have h := hg.apply_eq_apply_of_bounded hb (L.ω₁ / 2) 0
-  rw [Set.indicator_of_mem (by simpa using L.ω₁_div_two_notMem_lattice),
-    Set.indicator_of_notMem (by simp)] at h
+  rw [Set.indicator_of_mem L.ω₁_div_two_notMem_lattice,
+    Set.indicator_of_notMem (Set.notMem_compl_iff.mpr (zero_mem _))] at h
   exact inv_ne_zero (sub_ne_zero.mpr (hc _ L.ω₁_div_two_notMem_lattice)) h
 
 /-- Every point of the curve $y^2 = 4x^3 - g_2 x - g_3$ is $(\wp(z), \wp'(z))$ for some
@@ -126,7 +106,7 @@ theorem exists_weierstrassP_eq_and_derivWeierstrassP_eq {x y : ℂ}
   have hsq : ℘'[L] z ^ 2 = y ^ 2 := by rw [L.derivWeierstrassP_sq z hz, hzx, h]
   rcases sq_eq_sq_iff_eq_or_eq_neg.mp hsq with hy | hy
   · exact ⟨z, hz, hzx, hy⟩
-  · refine ⟨-z, fun h' ↦ hz (by simpa using neg_mem h'), ?_, ?_⟩
+  · refine ⟨-z, fun h' ↦ hz (neg_mem_iff.mp h'), ?_, ?_⟩
     · rw [L.weierstrassP_neg, hzx]
     · rw [L.derivWeierstrassP_neg, hy, neg_neg]
 
