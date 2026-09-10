@@ -74,6 +74,8 @@ Surjectivity uses the sources' own Liouville argument verbatim ([Pas2017] Thm 1.
 ```
 MeasureTheory/Integral/CurveIntegral/Map.lean          curve integral along x ↦ A x + c
 MeasureTheory/Integral/CurveIntegral/Periods.lean      curveIntegralPeriods + API + affine image
+MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean   FTC on Icc (added during
+                                                       execution as sub-ticket T027a)
 Topology/Algebra/Field.lean                            eventually_eq_of_sq_eq_sq
 AlgebraicGeometry/EllipticCurve/InvariantDifferential.lean   ω, affineNonTwoTorsion, shortModel, toShortModel(Linear), pullback identity, eval_Ψ₂Sq_sub (general)
 AlgebraicGeometry/EllipticCurve/IntegralPeriodLattice.lean   integralPeriodLattice (ℂ), API, invariance under toShortModel
@@ -90,8 +92,11 @@ imports it and still builds).
 
 ## Dependency graph
 
+(12 files, 1620 lines, 76 declarations; all proved, `lake build` clean, 2026-09-10.)
+
 ```
 Field.lean (sign-lock) ─────────────────────────────┐
+FundThmCalculus.lean (FTC on Icc) ──→ Lift.lean      │
 Map.lean ──→ Periods.lean ─────────────┐             │
 InvariantDifferential.lean ──→ IntegralPeriodLattice.lean ──→ Lift.lean ──→ Periods(W).lean ──→ ComplexPeriod.lean
 Uniqueness.lean ──→ Surjective.lean (AG1) ──────────────────────↗            ↗

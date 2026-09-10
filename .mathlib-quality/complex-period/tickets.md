@@ -25,6 +25,23 @@ Sources (full citations in `plan.md`): [LMFDB-PL], [LMFDB-P], [DLMF], [Pas2017],
 [Mil2006], [Sil2009]; local text files of the fetched references are in the session's
 tool-results directory (`pastras.txt`, `ww.txt`, `milne.txt`).
 
+## Status 2026-09-10
+
+**All 41 proof/definition tickets are done** (T001–T040 plus the spawned T027a), including the
+milestone T039 `WeierstrassCurve.integralPeriodLattice_eq`. 1620 lines of new Lean across 11
+files; `lake build FormalConjecturesForMathlib` is clean with **no errors, no warnings and no
+sorries**; `#print axioms` on the milestone, on `PeriodPair.exists_weierstrassP_eq` and on
+`PeriodPair.sub_mem_lattice_of_weierstrassP_eq_of_derivWeierstrassP_eq` shows only `propext`,
+`Classical.choice`, `Quot.sound`. Committed as `3f2e4b6a`. The four files under review on
+PR #5370 were not touched.
+
+One sub-ticket was spawned during execution: **T027a**, the fundamental theorem of calculus on a
+closed interval — Mathlib's `intervalIntegral.integral_hasDerivWithinAt_right` is gated on the
+`FTCFilter` class, which has instances only for `pure`, `𝓝`, `𝓝[≤]`, `𝓝[≥]`, and none for `Icc`.
+
+Remaining: the `CLEANUP-*` tickets (dispatched to `/cleanup` subagents), then `CLEANUP-ALL-1`
+and `CLEANUP-FINAL`.
+
 ## Summary
 - Total: 59 tickets = 40 proof/definition tickets + 17 per-file cleanups + CLEANUP-ALL-1 +
   CLEANUP-FINAL.
@@ -241,7 +258,7 @@ Bridging: `Path.ext`/`Path.cast` for base-point equalities; `Set.image_subset_if
 - `A` an equivalence (needed for the inverse direction); `c` arbitrary.
 
 ### [CLEANUP-2] Run /cleanup on P
-- **Status**: in_progress (dispatched to subagent 2026-09-10) · **File**: P · **Depends on**: T005 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 - **Description**: final per-file cleanup for P (2 proof tickets). Consider stating T005 for
   `E ≃ᴬ[𝕜] E'` (`ContinuousAffineEquiv`) if the API makes it shorter; otherwise leave.
 
@@ -277,7 +294,7 @@ theorem eventually_eq_of_sq_eq_sq (hf : ContinuousAt f a) (hg : ContinuousAt g a
   commutativity anyway — it does for step 2.)
 
 ### [CLEANUP-3] Run /cleanup on T
-- **Status**: open · **File**: T · **Depends on**: T006 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 - **Description**: final cleanup for T; check the name against Mathlib naming (`eventually_eq`
   vs `EventuallyEq`), consider `Filter.EventuallyEq` phrasing.
 
@@ -369,7 +386,7 @@ lemma continuousOn_invariantDifferential :
   unused in `continuousOn` — keep the set as stated for downstream use).
 
 ### [CLEANUP-4] Run /cleanup on ID (after T007–T009)
-- **Status**: open · **File**: ID · **Depends on**: T007, T008, T009 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 - **Description**: per-file cadence cleanup (3 proof tickets). Also: `toShortModel_apply` is
   `rfl` — decide `@[simp]` vs unfolding; check the `NeZero` section variables produce no
@@ -480,7 +497,7 @@ lemma image_toShortModel_affineNonTwoTorsion :
 - As T011.
 
 ### [CLEANUP-5] Run /cleanup on ID (after T010–T012)
-- **Status**: open · **File**: ID · **Depends on**: T010, T011, T012 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 - **Description**: per-file cadence cleanup (6 proof tickets on ID so far).
 
@@ -514,7 +531,7 @@ lemma invariantDifferential_shortModel_comp (p : F × F) :
 - `NontriviallyNormedField F`, `NeZero 2`.
 
 ### [CLEANUP-6] Run /cleanup on ID (final)
-- **Status**: open · **File**: ID · **Depends on**: T013 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 - **Description**: final per-file cleanup for ID. Naming review: `affineNonTwoTorsion`,
   `toShortModel`, `toShortModelLinear`, `shortModel` — align with Mathlib's `VariableChange`
   vocabulary if a reviewer would expect it; keep unless clearly better.
@@ -587,7 +604,7 @@ theorem integralPeriodLattice_shortModel :
 - ℂ (definition site); `NeZero (2:ℂ)`, `NeZero (3:ℂ)` are instances.
 
 ### [CLEANUP-7] Run /cleanup on IPL
-- **Status**: open · **File**: IPL · **Depends on**: T014, T015 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 - **Description**: final per-file cleanup for IPL (2 proof tickets).
 
@@ -721,7 +738,7 @@ theorem exists_weierstrassP_eq (c : ℂ) : ∃ z, z ∉ L.lattice ∧ ℘[L] z =
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-8] Run /cleanup on S (after T016–T018)
-- **Status**: open · **File**: S · **Depends on**: T018 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 - **Description**: per-file cadence cleanup (3 proof tickets). Candidate for Mathlib upstreaming:
   `exists_weierstrassP_eq` — record in the file docstring.
 
@@ -758,7 +775,7 @@ theorem exists_weierstrassP_eq_and_derivWeierstrassP_eq {x y : ℂ}
   `statement-splitting.md`: shared-witness existential).
 
 ### [CLEANUP-9] Run /cleanup on S (final)
-- **Status**: open · **File**: S · **Depends on**: T019 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 
 ### [T020] `eventually_weierstrassP_add_eq_add`
 - **Status**: done (finished 2026-09-10)
@@ -872,7 +889,7 @@ Transcribe `PeriodPair.two_mul_mem_lattice_of_derivWeierstrassP_eq_zero`
 - As stated; `c = 0` handled by the same proof (`0 ∈ Λ` makes `by_contra` immediate).
 
 ### [CLEANUP-10] Run /cleanup on J (after T020–T022)
-- **Status**: open · **File**: J · **Depends on**: T020, T021, T022 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 - **Description**: per-file cadence cleanup. Check whether `HalfPeriods.lean`'s three specific
   lemmas can now be one-line corollaries of T020–T022 (`a := z₀`, `b := -z₀`); if so, record a
@@ -935,7 +952,7 @@ theorem weierstrassP_eq_iff {a b : ℂ} (ha : a ∉ L.lattice) (hb : b ∉ L.lat
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-11] Run /cleanup on J (final)
-- **Status**: open · **File**: J · **Depends on**: T024 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 
 ### [T025] `weierstrassPoint` API
 - **Status**: done (finished 2026-09-10)
@@ -1117,7 +1134,7 @@ after `Set.uIcc_subset_Icc`), a `StronglyMeasurableAtFilter` obligation
   `=ᶠ` arguments. Minimal — exactly the use site in T027.
 
 ### [CLEANUP-12] Run /cleanup on L (after T025–T027)
-- **Status**: open · **File**: L · **Depends on**: T025, T026, T027 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 
 ### [T028] `isClosed_setOf_weierstrassPoint_lift_eq`
@@ -1272,7 +1289,7 @@ lemma eventually_weierstrassPoint_lift_eq (z₀ : ℂ) {t : ℝ} (ht : t ∈ I) 
 - Any path.
 
 ### [CLEANUP-13] Run /cleanup on L (after T028–T030)
-- **Status**: open · **File**: L · **Depends on**: T028, T029, T030 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 
 ### [T031] `weierstrassPoint_lift` and `lift_notMem_lattice`
@@ -1310,7 +1327,7 @@ Prove one `private`/auxiliary statement `∀ t ∈ I, lift t ∉ Λ ∧ weierstr
 - Any path; `hz₀`, `hp` exactly the data of a starting point over `γ 0`.
 
 ### [CLEANUP-14] Run /cleanup on L (final)
-- **Status**: open · **File**: L · **Depends on**: T031 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 - **Description**: final cleanup for L; if `weierstrassPoint_lift`/`lift_notMem_lattice` share a
   private conjunction, keep it `private`.
 
@@ -1441,7 +1458,7 @@ lemma curveIntegral_weierstrassLoop :
 - As T033.
 
 ### [CLEANUP-15] Run /cleanup on WP (after T032–T034)
-- **Status**: open · **File**: WP · **Depends on**: T032, T033, T034 · **Parallel**: no ·
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
   **Type**: cleanup
 
 ### [T035] `mem_integralPeriodLattice_of_mem_lattice`
@@ -1531,7 +1548,7 @@ theorem integralPeriodLattice_weierstrassCurve :
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-16] Run /cleanup on WP (final)
-- **Status**: open · **File**: WP · **Depends on**: T037 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 
 ### [T038] `periodPair_weierstrassCurve`
 - **Status**: done (finished 2026-09-10)
@@ -1617,7 +1634,7 @@ theorem exists_curveIntegral_eq_of_mem_lattice {l : ℂ} (hl : l ∈ W.periodPai
 - As T039. This is a shared-witness existential by nature (a loop and its properties).
 
 ### [CLEANUP-17] Run /cleanup on CP (final)
-- **Status**: open · **File**: CP · **Depends on**: T040 · **Parallel**: no · **Type**: cleanup
+- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
 
 ### [CLEANUP-FINAL] Run /cleanup-all on the whole project
 - **Status**: open · **Depends on**: every other ticket · **Type**: cleanup-all
