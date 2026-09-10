@@ -1087,7 +1087,10 @@ L.weierstrassCurve.affineNonTwoTorsion)` with `include hγ hS`.)
 
 ### [T027a] Fundamental theorem of calculus on a closed interval
 - **Status**: done (finished 2026-09-10)
-- **Progress**: proved as planned: three branches (`t = a` via `Icc =ᶠ Ici`, `t = b` via `Icc =ᶠ Iic`, interior via `Icc ∈ 𝓝 t`). Note `integral_hasDerivWithinAt_left` differentiates in the **lower** limit — both endpoint branches use `_right` and differ only in the set. Needs `[CompleteSpace E]`.
+- **Progress**: proved as planned: three branches (`t = a` via `Icc =ᶠ Ici`, `t = b` via `Icc =ᶠ Iic`, interior via `Icc ∈ 𝓝 t`). Note `integral_hasDerivWithinAt_left` differentiates in the **lower** limit — both endpoint branches use `_right` and differ only in the set. Needs `[CompleteSpace E]`. Cleanup pass then found the lemmas I had searched for and missed:
+  `Icc_mem_nhdsGT` / `Icc_mem_nhdsLE` give the one-sided memberships directly, and
+  `hasDerivWithinAt_inter` (with `← Ici_inter_Iic`) replaces the hand-rolled `=ᶠ[𝓝 t]`
+  set-congruence arguments entirely — 85 lines down to 67.
 - **File**: `FormalConjecturesForMathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean` (new)
 - **Depends on**: none
 - **Parent**: T027
