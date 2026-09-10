@@ -18,3 +18,7 @@ FormalConjectures/All.lean
 
 # Python bytecode from the scripts in `scripts/`.
 __pycache__/
+
+# Transient session sentinels written by the mathlib-quality plugin.
+.mathlib-quality/beastmode_active
+.mathlib-quality/.beastmode_stop_state
