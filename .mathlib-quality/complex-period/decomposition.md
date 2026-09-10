@@ -24,6 +24,38 @@ every "verified" citation below was checked by grepping the Mathlib v4.33.1 sour
 `.lake/packages/mathlib` for the declaration, and every "counterexample search" is a grep of the
 Mathlib and project sources for statements of the negated shape.
 
+## Execution outcome (2026-09-10)
+
+Every leaf of this tree was discharged; the whole development is sorry-free and `lake build`
+clean (commit `3f2e4b6a`). Three deviations from the decomposition are worth recording, because
+a future `/develop --decompose` pass should not re-derive the superseded routes:
+
+1. **AG1.1 (`tendsto_weierstrassP_cobounded`) is a one-liner, not a Laurent-expansion argument.**
+   Mathlib has `tendsto_cobounded_of_meromorphicOrderAt_neg`, so the pole behaviour follows
+   directly from `order_weierstrassP`. The planned route via `weierstrassP_eq` and
+   `NormedField.tendsto_norm_inv_nhdsNE_zero_atTop` is unnecessary.
+
+2. **L2.3's `linear_combination h1` cannot work as planned.** The identity is correct with
+   coefficient 1 (verified numerically before trusting it), but `ring` cannot cancel `12/12`
+   in a field whose characteristic is not known to the elaborator, so the closing tactic must
+   first clear denominators from explicit `(12 : F) ≠ 0`, `(48 : F) ≠ 0`, `(864 : F) ≠ 0` facts.
+   The same applies anywhere a numeral denominator appears over a general field; over ℂ (with
+   `CharZero`) `ring` and `linear_combination` handle division fine.
+
+3. **One leaf was missing: FTC on a closed interval.** L4.0(d) assumed
+   `intervalIntegral.integral_hasDerivWithinAt_right` could be applied with `s := Icc 0 1`, but
+   that lemma is gated on the `intervalIntegral.FTCFilter` class, whose only instances are
+   `pure`, `𝓝`, `𝓝[≤]` and `𝓝[≥]` — there is none for a closed interval. This became sub-ticket
+   **T027a**, proved in
+   `FormalConjecturesForMathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean`
+   by splitting on the position of the point (`Icc =ᶠ Ici` at the left endpoint, `Icc =ᶠ Iic` at
+   the right, `Icc ∈ 𝓝 t` in the interior).
+
+An independent numerical check of the normalisation the milestone rests on: for
+`y² = x³ − x` (`c₄ = 48`, `c₆ = 0`) the lattice with `g₂ = c₄/12 = 4`, `g₃ = c₆/216 = 0` is the
+square lattice scaled by `2.6220571`, whose full real period `5.2441142` agrees with LMFDB's
+`Ω(32.a3) = 5.2441151` (the residual is the truncation of the slowly-convergent `Σ 1/l⁴`).
+
 ## Verbatim source quotes (referenced as Q1–Q20 below)
 
 - **Q1** [LMFDB `ec.q.period_lattice`]: "For $E$ an elliptic curve defined over $\C$ by a
