@@ -66,7 +66,7 @@ variable {R : Type*} [CommRing R] (W : WeierstrassCurve R)
 /-- Completing the square: at an affine point of `W`, $(2y + a_1 x + a_3)^2 = \Psi_2^2(x)$. -/
 lemma eval_Ψ₂Sq_eq_sq_of_equation {x y : R} (h : W.toAffine.Equation x y) :
     W.Ψ₂Sq.eval x = (2 * y + W.a₁ * x + W.a₃) ^ 2 := by
-  rw [WeierstrassCurve.Affine.equation_iff] at h
+  rw [Affine.equation_iff] at h
   simp only [Ψ₂Sq, eval_add, eval_mul, eval_pow, eval_C, eval_X, b₂, b₄, b₆]
   linear_combination (-4 : R) * h
 
@@ -108,18 +108,17 @@ lemma toShortModel_apply (p : F × F) :
 
 variable [NeZero (2 : F)] [NeZero (3 : F)]
 
+/-- A numeral that factors as a product of powers of `2` and `3` is nonzero in a field where `2`
+and `3` are; the denominators cleared below are all of this shape. -/
+private lemma ne_zero_of_eq_two_pow_mul_three_pow (m n : ℕ) {c : F} (h : c = 2 ^ m * 3 ^ n) :
+    c ≠ 0 := h ▸ NeZero.ne _
+
 /-- The substitution $x = X - b_2 / 12$ turns the 2-division polynomial into the depressed cubic
 $4X^3 - g_2 X - g_3$ with $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$. -/
 lemma eval_Ψ₂Sq_sub (x : F) :
     W.Ψ₂Sq.eval (x - W.b₂ / 12) = 4 * x ^ 3 - W.c₄ / 12 * x - W.c₆ / 216 := by
-  have h2 : (2 : F) ≠ 0 := NeZero.ne 2
-  have h3 : (3 : F) ≠ 0 := NeZero.ne 3
-  have h12 : (12 : F) ≠ 0 := by
-    rw [show (12 : F) = 2 * 2 * 3 by norm_num]
-    exact mul_ne_zero (mul_ne_zero h2 h2) h3
-  have h216 : (216 : F) ≠ 0 := by
-    rw [show (216 : F) = 2 * 2 * 2 * 3 * 3 * 3 by norm_num]
-    exact mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero h2 h2) h2) h3) h3) h3
+  have h12 : (12 : F) ≠ 0 := ne_zero_of_eq_two_pow_mul_three_pow 2 1 (by norm_num)
+  have h216 : (216 : F) ≠ 0 := ne_zero_of_eq_two_pow_mul_three_pow 3 3 (by norm_num)
   simp only [Ψ₂Sq, eval_add, eval_mul, eval_pow, eval_C, eval_X, c₄, c₆, b₄]
   field_simp
   ring
@@ -129,17 +128,9 @@ lemma eval_Ψ₂Sq_sub (x : F) :
 exactly when `p` is one of `W`. -/
 lemma toShortModel_mem_affineNonTwoTorsion_iff {p : F × F} :
     W.toShortModel p ∈ W.shortModel.affineNonTwoTorsion ↔ p ∈ W.affineNonTwoTorsion := by
-  have h2 : (2 : F) ≠ 0 := NeZero.ne 2
-  have h3 : (3 : F) ≠ 0 := NeZero.ne 3
-  have h12 : (12 : F) ≠ 0 := by
-    rw [show (12 : F) = 2 * 2 * 3 by norm_num]; exact mul_ne_zero (mul_ne_zero h2 h2) h3
-  have h48 : (48 : F) ≠ 0 := by
-    rw [show (48 : F) = 2 * 2 * 2 * 2 * 3 by norm_num]
-    exact mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero h2 h2) h2) h2) h3
-  have h864 : (864 : F) ≠ 0 := by
-    rw [show (864 : F) = 2 * 2 * 2 * 2 * 2 * 3 * 3 * 3 by norm_num]
-    exact mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero (mul_ne_zero
-      (mul_ne_zero h2 h2) h2) h2) h2) h3) h3) h3
+  have h12 : (12 : F) ≠ 0 := ne_zero_of_eq_two_pow_mul_three_pow 2 1 (by norm_num)
+  have h48 : (48 : F) ≠ 0 := ne_zero_of_eq_two_pow_mul_three_pow 4 1 (by norm_num)
+  have h864 : (864 : F) ≠ 0 := ne_zero_of_eq_two_pow_mul_three_pow 5 3 (by norm_num)
   have hdiff : (p.2 + (W.a₁ * p.1 + W.a₃) / 2) ^ 2
         + W.shortModel.a₁ * (p.1 + W.b₂ / 12) * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
         + W.shortModel.a₃ * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
@@ -152,11 +143,10 @@ lemma toShortModel_mem_affineNonTwoTorsion_iff {p : F × F} :
     ring
   have hden : 2 * (p.2 + (W.a₁ * p.1 + W.a₃) / 2) + W.shortModel.a₁ * (p.1 + W.b₂ / 12)
       + W.shortModel.a₃ = 2 * p.2 + W.a₁ * p.1 + W.a₃ := by
-    have hhalf : (2 : F) * ((W.a₁ * p.1 + W.a₃) / 2) = W.a₁ * p.1 + W.a₃ := by field_simp
     simp only [shortModel]
-    linear_combination hhalf
-  simp only [mem_affineNonTwoTorsion, toShortModel_apply, WeierstrassCurve.Affine.equation_iff,
-    WeierstrassCurve.toAffine, hden]
+    field_simp
+    ring
+  simp only [mem_affineNonTwoTorsion, toShortModel_apply, Affine.equation_iff, toAffine, hden]
   refine and_congr ?_ Iff.rfl
   rw [← sub_eq_zero, ← sub_eq_zero (a := p.2 ^ 2 + W.a₁ * p.1 * p.2 + W.a₃ * p.2), hdiff]
 
@@ -231,13 +221,12 @@ of $dX / (2Y)$ along `toShortModel` is $dx / (2y + a_1 x + a_3)$. -/
 lemma invariantDifferential_shortModel_comp (p : F × F) :
     (W.shortModel.invariantDifferential (W.toShortModel p)).comp
       (W.toShortModelLinear : (F × F) →L[F] (F × F)) = W.invariantDifferential p := by
-  have hhalf : (2 : F) * ((W.a₁ * p.1 + W.a₃) / 2) = W.a₁ * p.1 + W.a₃ := by
-    field_simp
   refine ContinuousLinearMap.ext fun v ↦ ?_
   simp only [ContinuousLinearMap.comp_apply, invariantDifferential_apply, toShortModel_apply,
     shortModel]
   congr 1
-  linear_combination hhalf
+  field_simp
+  ring
 
 end NormedField
 

@@ -1614,6 +1614,32 @@ the ticketed statements are protected:
    a `def localLift` would justify the name, otherwise something like
    `exists_eventually_weierstrassPoint_eq` is more descriptive.
 
+#### Project-wide checks (2026-09-10)
+- **CI gate**: `lake --wfail build FormalConjecturesForMathlib FormalConjecturesUtil` — the exact
+  command CI runs, warnings as errors — completes clean (8926 jobs).
+- **Root import**: `./scripts/mk_all_formathlib.sh` reports "No update necessary", so the committed
+  `FormalConjecturesForMathlib.lean` is byte-identical to what CI regenerates; all eleven new
+  modules are listed and the list is sorted; the deleted `RealComponents` is gone from it.
+- **`#print axioms`** on `integralPeriodLattice_eq`, `exists_curveIntegral_eq_of_mem_lattice`,
+  `exists_weierstrassP_eq`, `sub_mem_lattice_of_weierstrassP_eq_of_derivWeierstrassP_eq`,
+  `weierstrassP_eq_iff` and `integralPeriodLattice_weierstrassCurve`: `propext`,
+  `Classical.choice`, `Quot.sound` only.
+- **Docstrings**: 79 declarations, 0 undocumented. The six that were missing (all in
+  `Weierstrass/Periods.lean`) were written by hand; note a `/- ## Section -/` comment is not a
+  docstring, so a coverage checker must require the `/--` opener.
+- **Docstring cross-references**: all twelve backticked dotted names resolve —
+  `intervalIntegral.integral_hasDerivWithinAt_right` and `intervalIntegral.FTCFilter` to
+  `Mathlib/MeasureTheory/Integral/IntervalIntegral/FundThmCalculus.lean`,
+  `PeriodPair.weierstrassCurve` to `Weierstrass/Existence.lean:93`, `WeierstrassCurve.periodPair`
+  to `PeriodLattice.lean:171`, the two module paths to real files, and `ec.q.period_lattice` /
+  `ec.period` are LMFDB knowl ids.
+- **No duplicate declaration names** across the eleven files; 5 of the 79 declarations are
+  `private`; 1640 lines total; no line exceeds 100 characters (measured in characters — `awk`
+  counts bytes and over-reports on Unicode-heavy Lean).
+- **PR #5370 files** (`PeriodIntegral.lean`, `DivisionPolynomial/Real.lean`,
+  `CubicDiscriminant.lean`, `Analysis/Polynomial/Basic.lean`) remain byte-identical to branch
+  `integralPeriod`.
+
 #### Docstring coverage
 33 declarations were found without docstrings and the lists were handed to the per-file cleanup
 agents. One was a defect of mine rather than an omission: the docstring for
