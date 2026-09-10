@@ -15,7 +15,6 @@ limitations under the License.
 -/
 module  -- shake: keep-all --deprecated_module: ignore
 
-public import FormalConjecturesForMathlib.Algebra.CubicDiscriminant
 public import FormalConjecturesForMathlib.Algebra.GCDMonoid.Finset
 public import FormalConjecturesForMathlib.Algebra.Group.Action.Pointwise.Set.Basic
 public import FormalConjecturesForMathlib.Algebra.Group.GrowthFunction
@@ -28,15 +27,6 @@ public import FormalConjecturesForMathlib.Algebra.Polynomial.Basic
 public import FormalConjecturesForMathlib.Algebra.Polynomial.HasseDeriv
 public import FormalConjecturesForMathlib.Algebra.Powerfree
 public import FormalConjecturesForMathlib.Algebra.QuadraticAlgebra.Instances
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.Affine.VariableChange
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.ComplexPeriod
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.DivisionPolynomial.Real
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.IntegralPeriodLattice
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.InvariantDifferential
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodLattice
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.Uniformization
 public import FormalConjecturesForMathlib.AlgebraicGeometry.ProjectiveSpace
 public import FormalConjecturesForMathlib.AlgebraicGeometry.VectorBundle
 public import FormalConjecturesForMathlib.Analysis.Asymptotics.Basic
@@ -44,22 +34,8 @@ public import FormalConjecturesForMathlib.Analysis.Equidistribution.ModOne
 public import FormalConjecturesForMathlib.Analysis.Fourier.SpectralSets
 public import FormalConjecturesForMathlib.Analysis.HasGaps
 public import FormalConjecturesForMathlib.Analysis.Matrix.Spectrum
-public import FormalConjecturesForMathlib.Analysis.Polynomial.Basic
 public import FormalConjecturesForMathlib.Analysis.Real.Cardinality
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.AdditiveCharacter
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Addition
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Conjugation
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Eisenstein
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.HalfPeriods
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Injective
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Laurent
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Lift
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Periods
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.RealAxis
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Surjective
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Uniformization
-public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Uniqueness
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Log.Basic
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.NthRoot
 public import FormalConjecturesForMathlib.Combinatorics.AP.Basic
@@ -160,10 +136,6 @@ public import FormalConjecturesForMathlib.LinearAlgebra.AffineSpace.Simplex.Basi
 public import FormalConjecturesForMathlib.LinearAlgebra.GeneralLinearGroup
 public import FormalConjecturesForMathlib.LinearAlgebra.SpecialLinearGroup
 public import FormalConjecturesForMathlib.Logic.Equiv.Fin.Rotate
-public import FormalConjecturesForMathlib.MeasureTheory.Integral.Bochner.Set
-public import FormalConjecturesForMathlib.MeasureTheory.Integral.CurveIntegral.Map
-public import FormalConjecturesForMathlib.MeasureTheory.Integral.CurveIntegral.Periods
-public import FormalConjecturesForMathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 public import FormalConjecturesForMathlib.NumberTheory.AdditionChain
 public import FormalConjecturesForMathlib.NumberTheory.AdditiveComplement
 public import FormalConjecturesForMathlib.NumberTheory.AdditivelyComplete
@@ -178,7 +150,6 @@ public import FormalConjecturesForMathlib.NumberTheory.Divisors
 public import FormalConjecturesForMathlib.NumberTheory.Harmonic
 public import FormalConjecturesForMathlib.NumberTheory.Lacunary
 public import FormalConjecturesForMathlib.NumberTheory.LegendreSymbol.Basic
-public import FormalConjecturesForMathlib.NumberTheory.ModularForms.JSurjective
 public import FormalConjecturesForMathlib.NumberTheory.NormalNumber
 public import FormalConjecturesForMathlib.NumberTheory.NumberField.FundamentalDiscriminant
 public import FormalConjecturesForMathlib.NumberTheory.NumberField.Quadratic
@@ -206,7 +177,6 @@ public import FormalConjecturesForMathlib.SetTheory.Cardinal.Continuum
 public import FormalConjecturesForMathlib.SetTheory.Cardinal.SimpleGraph
 public import FormalConjecturesForMathlib.Tactic.Linter.Term
 public import FormalConjecturesForMathlib.Topology.AbsoluteNeighborhoodRetract
-public import FormalConjecturesForMathlib.Topology.Algebra.Field
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Group
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Order
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Real
