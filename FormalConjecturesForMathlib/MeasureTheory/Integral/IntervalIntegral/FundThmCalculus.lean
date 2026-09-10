@@ -48,35 +48,18 @@ theorem integral_hasDerivWithinAt_Icc (hab : a < b) (hf : ContinuousOn f (Icc a 
     (hf.mono (uIcc_subset_Icc ⟨le_rfl, hab.le⟩ ht)).intervalIntegrable
   have hmeas : StronglyMeasurableAtFilter f (𝓝[Icc a b] t) volume :=
     hf.stronglyMeasurableAtFilter_nhdsWithin measurableSet_Icc t
-  rcases eq_or_lt_of_le ht.1 with rfl | hat
-  · have hmem : Icc a b ∈ 𝓝[>] a := by
-      filter_upwards [self_mem_nhdsWithin,
-        mem_nhdsWithin_of_mem_nhds (Iio_mem_nhds hab)] with x hx hx2
-      exact ⟨le_of_lt hx, hx2.le⟩
-    have hset : Icc a b =ᶠ[𝓝 a] Ici a := by
-      filter_upwards [Iio_mem_nhds hab] with x hx
-      simp only [eq_iff_iff]
-      exact ⟨And.left, fun h ↦ ⟨h, hx.le⟩⟩
-    rw [hasDerivWithinAt_congr_set hset]
-    exact integral_hasDerivWithinAt_right hint
-      (hmeas.filter_mono (nhdsWithin_le_iff.mpr hmem))
+  rcases ht.1.eq_or_lt with rfl | hat
+  · have hmem : Icc a b ∈ 𝓝[>] a := Icc_mem_nhdsGT hab
+    rw [← Ici_inter_Iic, hasDerivWithinAt_inter (Iic_mem_nhds hab)]
+    exact integral_hasDerivWithinAt_right hint (hmeas.filter_mono (nhdsWithin_le_iff.mpr hmem))
       ((hf a ht).mono_of_mem_nhdsWithin hmem)
-  rcases eq_or_lt_of_le ht.2 with rfl | htb
-  · have hmem : Icc a t ∈ 𝓝[≤] t := by
-      filter_upwards [self_mem_nhdsWithin,
-        mem_nhdsWithin_of_mem_nhds (Ioi_mem_nhds hat)] with x hx hx2
-      exact ⟨le_of_lt hx2, hx⟩
-    have hset : Icc a t =ᶠ[𝓝 t] Iic t := by
-      filter_upwards [Ioi_mem_nhds hat] with x hx
-      simp only [eq_iff_iff]
-      exact ⟨And.right, fun h ↦ ⟨hx.le, h⟩⟩
-    rw [hasDerivWithinAt_congr_set hset]
-    exact integral_hasDerivWithinAt_right hint
-      (hmeas.filter_mono (nhdsWithin_le_iff.mpr hmem))
+  rcases ht.2.eq_or_lt with rfl | htb
+  · have hmem : Icc a t ∈ 𝓝[≤] t := Icc_mem_nhdsLE hat
+    rw [← Ici_inter_Iic, inter_comm, hasDerivWithinAt_inter (Ici_mem_nhds hat)]
+    exact integral_hasDerivWithinAt_right hint (hmeas.filter_mono (nhdsWithin_le_iff.mpr hmem))
       ((hf t ht).mono_of_mem_nhdsWithin hmem)
   · have hmem : Icc a b ∈ 𝓝 t := Icc_mem_nhds hat htb
-    exact (integral_hasDerivAt_right hint
-      (hmeas.filter_mono (nhdsWithin_eq_nhds.mpr hmem).ge)
+    exact (integral_hasDerivAt_right hint (hmeas.filter_mono (nhdsWithin_eq_nhds.mpr hmem).ge)
       ((hf t ht).continuousAt hmem)).hasDerivWithinAt
 
 end intervalIntegral

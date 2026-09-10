@@ -259,7 +259,11 @@ Bridging: `Path.ext`/`Path.cast` for base-point equalities; `Set.image_subset_if
 - `A` an equivalence (needed for the inverse direction); `c` arbitrary.
 
 ### [CLEANUP-2] Run /cleanup on P
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 119 → 107 lines, clean under `--wfail`. Four public lemmas gained docstrings.
+  `Set.Icc.mem_iff_one_sub_mem` and `range_subset_iff.2` replaced hand-rolled arguments;
+  `zero_mem`/`mono` went to term mode; `hA` collapsed to
+  `((A : E →L[𝕜] E').restrictScalars ℝ).contDiff.add contDiff_const`. No signature changed.
 - **Description**: final per-file cleanup for P (2 proof tickets). Consider stating T005 for
   `E ≃ᴬ[𝕜] E'` (`ContinuousAffineEquiv`) if the API makes it shorter; otherwise leave.
 
@@ -295,7 +299,16 @@ theorem eventually_eq_of_sq_eq_sq (hf : ContinuousAt f a) (hg : ContinuousAt g a
   commutativity anyway — it does for step 2.)
 
 ### [CLEANUP-3] Run /cleanup on T
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 47 → 46 lines. Docstring added. The `linear_combination` + `mul_eq_zero`
+  factoring replaced by `(sq_eq_sq_iff_eq_or_eq_neg.mp hx).resolve_right`, which made
+  `Mathlib.Tactic.LinearCombination` unused here and it was dropped. `Lift.lean` had been
+  getting that tactic through this file and now gets it via
+  `Mathlib.Analysis.Calculus.InverseFunctionTheorem.Deriv`; no explicit import added, since every
+  other `linear_combination` user in the repo (Existence, Uniqueness, Eisenstein,
+  InvariantDifferential) also imports it transitively. Name kept: `eventually_eq_of_sq_eq_sq` follows Mathlib's
+  `Filter.EventuallyEq`-as-`eventually_eq` convention. Flagged, not applied (signature change):
+  the lemma needs only `[CommRing 𝕜] [NoZeroDivisors 𝕜]`, not `[Field 𝕜]`.
 - **Description**: final cleanup for T; check the name against Mathlib naming (`eventually_eq`
   vs `EventuallyEq`), consider `Filter.EventuallyEq` phrasing.
 

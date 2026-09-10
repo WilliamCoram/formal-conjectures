@@ -15,7 +15,6 @@ limitations under the License.
 -/
 module
 
-public import Mathlib.Tactic.LinearCombination
 public import Mathlib.Topology.Algebra.Ring.Basic
 public import Mathlib.Topology.Separation.Basic
 
@@ -34,13 +33,14 @@ open Filter Topology
 variable {α 𝕜 : Type*} [TopologicalSpace α] [Field 𝕜] [TopologicalSpace 𝕜] [IsTopologicalRing 𝕜]
   [T1Space 𝕜] [NeZero (2 : 𝕜)] {f g : α → 𝕜} {a : α}
 
+/-- Two functions continuous at `a` whose squares agree near `a` and whose common value at `a`
+is nonzero agree near `a`; this locks the sign of a continuous branch of a square root. -/
 theorem eventually_eq_of_sq_eq_sq (hf : ContinuousAt f a) (hg : ContinuousAt g a) (h : f a = g a)
     (h0 : f a ≠ 0) (hsq : ∀ᶠ x in 𝓝 a, f x ^ 2 = g x ^ 2) : ∀ᶠ x in 𝓝 a, f x = g x := by
   have hsum : f a + g a ≠ 0 := by
     rw [← h, ← two_mul]
     exact mul_ne_zero (NeZero.ne (2 : 𝕜)) h0
   filter_upwards [hsq, (hf.add hg).eventually_ne hsum] with x hx hx'
-  have hfac : (f x - g x) * (f x + g x) = 0 := by linear_combination hx
-  exact sub_eq_zero.mp ((mul_eq_zero.mp hfac).resolve_right hx')
+  exact (sq_eq_sq_iff_eq_or_eq_neg.mp hx).resolve_right fun hne ↦ hx' (by simp [hne])
 
 end

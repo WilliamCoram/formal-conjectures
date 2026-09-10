@@ -194,11 +194,9 @@ lemma invariantDifferential_apply (p v : F × F) :
 /-- The invariant differential is continuous away from the affine points of order two, where its
 denominator vanishes. -/
 lemma continuousOn_invariantDifferential :
-    ContinuousOn W.invariantDifferential W.affineNonTwoTorsion := by
-  show ContinuousOn (fun p : F × F ↦ (2 * p.2 + W.a₁ * p.1 + W.a₃)⁻¹ •
-    ContinuousLinearMap.fst F F F) _
-  exact ContinuousOn.smul (ContinuousOn.inv₀ (by fun_prop)
-    fun p hp ↦ (W.mem_affineNonTwoTorsion.mp hp).2) continuousOn_const
+    ContinuousOn W.invariantDifferential W.affineNonTwoTorsion :=
+  (ContinuousOn.inv₀ (by fun_prop)
+    fun p hp ↦ (W.mem_affineNonTwoTorsion.mp hp).2).smul continuousOn_const
 
 variable [NeZero (2 : F)]
 
