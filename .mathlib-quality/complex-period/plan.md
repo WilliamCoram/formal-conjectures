@@ -121,3 +121,32 @@ Surjective. `ComplexPeriod` needs everything.
 - The ℘-side statements are for an arbitrary `PeriodPair`; nothing assumes reality.
 - Loops avoid `O` and the 2-torsion points: `x` is a local coordinate there, so `ω = dx/(2y+…)`
   literally. The theorem shows nothing is lost.
+
+## Follow-ups surfaced by this development (not on this board — user decides)
+
+1. **An intrinsic lattice-side real period.** When `nrRealComponents` was removed on 2026-09-10
+   the lattice side kept only `leastRealPeriod = Ω₀`, and the BSD factor of 2 was left entirely
+   to the integral side. With `PeriodPair.weierstrassP_eq_iff` now proved, the intrinsic form
+   becomes reachable: for a real lattice, `2·Re ω ∈ Λ ∩ ℝ = Ω₀ℤ`, so `Re Λ` is `Ω₀ℤ`
+   (rectangular, `Δ > 0`) or `(Ω₀/2)ℤ` (rhombic, `Δ < 0`), and in both cases
+
+       BSD real period = least positive element of `{ω + conj ω : ω ∈ Λ}` = 2 · (least positive
+       real part of a lattice element).
+
+   The missing step is "Λ rectangular ⟺ Δ > 0", whose classical proof goes through the ℘-values
+   at the three half-periods being real and distinct — and the distinctness is exactly
+   `weierstrassP_eq_iff`. That would remove the last vestige of the unproved component count
+   from the real-period development.
+
+2. **`HalfPeriods` as corollaries of `Injective`.** `HalfPeriods.eventually_weierstrassP_add_eq_sub`,
+   `weierstrassP_add_eq_sub_of_derivWeierstrassP_eq_zero` and
+   `two_mul_mem_lattice_of_derivWeierstrassP_eq_zero` are the `(a, b) = (z₀, −z₀)` and `c = 2z₀`
+   specialisations of `Injective.lean`'s three lemmas. Re-deriving them would remove ~110 lines,
+   but `HalfPeriods.lean` is imported by the real-period development, so the change should be
+   made deliberately rather than as part of a cleanup pass.
+
+3. **Upstreaming.** `PeriodPair.exists_weierstrassP_eq`, `PeriodPair.weierstrassP_eq_iff` and
+   `intervalIntegral.integral_hasDerivWithinAt_Icc` are the three declarations here that are
+   mathlib-shaped and mathlib-missing. The first also closes the single remaining `sorry` of the
+   LeanBridge uniformisation chain (`LeanBridge/LeanBridge/work/inverse.lean:72`), which is on
+   mathlib v4.31.0 — the statement transfers verbatim, the proof needs porting.

@@ -121,6 +121,47 @@ lemma eval_Ψ₂Sq_sub (x : F) :
   field_simp
   ring
 
+example : True := by
+  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := fun _ _ _ hc ↦ hc ▸ NeZero.ne _
+  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
+  trivial
+
+example : True := by
+  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := by
+    rintro m n c rfl
+    exact NeZero.ne _
+  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
+  have h864 : (864 : F) ≠ 0 := hne 5 3 _ (by norm_num)
+  trivial
+
+example (p : F × F) : 2 * (p.2 + (W.a₁ * p.1 + W.a₃) / 2) + W.shortModel.a₁ * (p.1 + W.b₂ / 12)
+    + W.shortModel.a₃ = 2 * p.2 + W.a₁ * p.1 + W.a₃ := by
+  simp only [shortModel]
+  field_simp
+  ring
+
+example (p : F × F) : 2 * (p.2 + (W.a₁ * p.1 + W.a₃) / 2) + W.shortModel.a₁ * (p.1 + W.b₂ / 12)
+    + W.shortModel.a₃ = 2 * p.2 + W.a₁ * p.1 + W.a₃ := by
+  simp [shortModel]
+  ring
+
+example (p : F × F) : (p.2 + (W.a₁ * p.1 + W.a₃) / 2) ^ 2
+      + W.shortModel.a₁ * (p.1 + W.b₂ / 12) * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
+      + W.shortModel.a₃ * (p.2 + (W.a₁ * p.1 + W.a₃) / 2)
+      - ((p.1 + W.b₂ / 12) ^ 3 + W.shortModel.a₂ * (p.1 + W.b₂ / 12) ^ 2
+        + W.shortModel.a₄ * (p.1 + W.b₂ / 12) + W.shortModel.a₆)
+    = p.2 ^ 2 + W.a₁ * p.1 * p.2 + W.a₃ * p.2
+      - (p.1 ^ 3 + W.a₂ * p.1 ^ 2 + W.a₄ * p.1 + W.a₆) := by
+  have hne : ∀ (m n : ℕ) (c : F), c = 2 ^ m * 3 ^ n → c ≠ 0 := by
+    rintro m n c rfl
+    exact NeZero.ne _
+  have h12 : (12 : F) ≠ 0 := hne 2 1 _ (by norm_num)
+  have h48 : (48 : F) ≠ 0 := hne 4 1 _ (by norm_num)
+  have h864 : (864 : F) ≠ 0 := hne 5 3 _ (by norm_num)
+  simp only [shortModel, c₄, c₆, b₂, b₄, b₆]
+  field_simp
+  ring
+
 lemma toShortModel_mem_affineNonTwoTorsion_iff {p : F × F} :
     W.toShortModel p ∈ W.shortModel.affineNonTwoTorsion ↔ p ∈ W.affineNonTwoTorsion := by
   have h2 : (2 : F) ≠ 0 := NeZero.ne 2
@@ -228,6 +269,34 @@ lemma invariantDifferential_shortModel_comp (p : F × F) :
     shortModel]
   congr 1
   linear_combination hhalf
+
+example (p : F × F) :
+    (W.shortModel.invariantDifferential (W.toShortModel p)).comp
+      (W.toShortModelLinear : (F × F) →L[F] (F × F)) = W.invariantDifferential p := by
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [ContinuousLinearMap.comp_apply, invariantDifferential_apply, toShortModel_apply,
+    shortModel]
+  congr 1
+  field_simp
+  ring
+
+example (p : F × F) :
+    (W.shortModel.invariantDifferential (W.toShortModel p)).comp
+      (W.toShortModelLinear : (F × F) →L[F] (F × F)) = W.invariantDifferential p := by
+  refine ContinuousLinearMap.ext fun v ↦ ?_
+  simp only [ContinuousLinearMap.comp_apply, invariantDifferential_apply, toShortModel_apply,
+    shortModel]
+  congr 1
+  field_simp
+
+omit [NeZero (2 : F)] in
+example : (F × F) ≃L[F] (F × F) :=
+  ContinuousLinearEquiv.equivOfInverse
+    ((ContinuousLinearMap.fst F F F).prod
+      (ContinuousLinearMap.snd F F F + (W.a₁ / 2) • ContinuousLinearMap.fst F F F))
+    ((ContinuousLinearMap.fst F F F).prod
+      (ContinuousLinearMap.snd F F F - (W.a₁ / 2) • ContinuousLinearMap.fst F F F))
+    (fun _ ↦ by ext <;> simp) (fun _ ↦ by ext <;> simp)
 
 end NormedField
 

@@ -60,7 +60,7 @@ lemma curveIntegral_mem_curveIntegralPeriods {p : E} (γ : Path p p)
 
 /-- The periods of `ω` on `S` are periods of `ω` on any larger set. -/
 lemma curveIntegralPeriods_mono (h : S ⊆ T) : curveIntegralPeriods ω S ⊆ curveIntegralPeriods ω T :=
-  fun _ ⟨p, γ, hγ, hS, rfl⟩ ↦ ⟨p, γ, hγ, hS.trans h, rfl⟩
+  fun _ ⟨p, γ, hγ, hS, hw⟩ ↦ ⟨p, γ, hγ, hS.trans h, hw⟩
 
 /-- Zero is a period of `ω` on any nonempty set. -/
 lemma zero_mem_curveIntegralPeriods (hS : S.Nonempty) : 0 ∈ curveIntegralPeriods ω S :=
@@ -78,20 +78,15 @@ variable [NormedSpace ℝ F] [IsScalarTower ℝ 𝕜 E] [IsScalarTower ℝ 𝕜 
 
 /-- One inclusion of `curveIntegralPeriods_image_add_const`: pushing a loop forward along
 `x ↦ A x + c` turns a period of the pullback into a period of `ω`. -/
-private lemma curveIntegralPeriods_subset_image_add_const (ω : E' → E' →L[𝕜] F)
-    (A : E ≃L[𝕜] E') (c : E') (S : Set E) :
-    curveIntegralPeriods (fun x ↦ (ω (A x + c)).comp (A : E →L[𝕜] E')) S ⊆
+private lemma curveIntegralPeriods_subset_image_add_const (ω : E' → E' →L[𝕜] F) (A : E ≃L[𝕜] E')
+    (c : E') (S : Set E) : curveIntegralPeriods (fun x ↦ (ω (A x + c)).comp (A : E →L[𝕜] E')) S ⊆
       curveIntegralPeriods ω ((fun x ↦ A x + c) '' S) := by
-  have hA : ContDiff ℝ 1 fun x : E ↦ A x + c := by
-    have h : ContDiff ℝ 1 fun x : E ↦ ((A : E →L[𝕜] E').restrictScalars ℝ) x :=
-      ContinuousLinearMap.contDiff _
-    have hc : ContDiff ℝ 1 fun _ : E ↦ c := contDiff_const
-    exact ContDiff.add h hc
+  have hA : ContDiff ℝ 1 fun x : E ↦ A x + c :=
+    ((A : E →L[𝕜] E').restrictScalars ℝ).contDiff.add contDiff_const
   rintro w ⟨p, γ, hγ, hS, rfl⟩
-  refine ⟨A p + c, γ.map' (f := fun x ↦ A x + c) (by fun_prop), hA.comp_contDiffOn hγ, ?_, ?_⟩
-  · rintro _ ⟨t, rfl⟩
-    exact ⟨γ t, hS ⟨t, rfl⟩, rfl⟩
-  · exact curveIntegral_map_add_const ω (A : E →L[𝕜] E') c γ (hγ.differentiableOn one_ne_zero)
+  exact ⟨A p + c, γ.map' (f := fun x ↦ A x + c) (by fun_prop), hA.comp_contDiffOn hγ,
+    range_subset_iff.2 fun t ↦ ⟨γ t, hS ⟨t, rfl⟩, rfl⟩,
+    curveIntegral_map_add_const ω (A : E →L[𝕜] E') c γ (hγ.differentiableOn one_ne_zero)⟩
 
 /-- The periods of `ω` on the image of `S` under an affine bijection `x ↦ A x + c` are the periods
 of the pullback `x ↦ (ω (A x + c)).comp A` on `S`. -/
@@ -103,13 +98,10 @@ theorem curveIntegralPeriods_image_add_const (ω : E' → E' →L[𝕜] F) (A : 
     (fun x ↦ (ω (A x + c)).comp (A : E →L[𝕜] E')) A.symm (-(A.symm c)) ((fun x ↦ A x + c) '' S)
   have hform : (fun y ↦ (((ω (A (A.symm y + -(A.symm c)) + c)).comp (A : E →L[𝕜] E'))).comp
       (A.symm : E' →L[𝕜] E)) = ω := by
-    funext y
-    ext v
+    ext y v
     simp
   have himg : (fun y ↦ A.symm y + -(A.symm c)) '' ((fun x ↦ A x + c) '' S) = S := by
-    rw [Set.image_image]
-    simp
-  rw [hform, himg] at key
-  exact key
+    simp [Set.image_image]
+  rwa [hform, himg] at key
 
 end
