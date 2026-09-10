@@ -773,7 +773,8 @@ theorem exists_weierstrassP_eq (c : ℂ) : ∃ z, z ∉ L.lattice ∧ ℘[L] z =
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-8] Run /cleanup on S (after T016–T018)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over S (see CLEANUP-9).
 - **Description**: per-file cadence cleanup (3 proof tickets). Candidate for Mathlib upstreaming:
   `exists_weierstrassP_eq` — record in the file docstring.
 
@@ -810,7 +811,19 @@ theorem exists_weierstrassP_eq_and_derivWeierstrassP_eq {x y : ℂ}
   `statement-splitting.md`: shared-witness existential).
 
 ### [CLEANUP-9] Run /cleanup on S (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 135 → 115 lines, every signature byte-identical (checked on the diff: no
+  `theorem`/`lemma`/`def` line added or removed), so ticketed statements — `exists_weierstrassP_eq`
+  in particular — are untouched. `differentiable_inv_weierstrassP_sub` is the win: body 37 → 17,
+  seven `have`s down to two, and every `simpa` gone, so the proof no longer depends on the default
+  simp set. Three hand-rolled blocks gave way to Mathlib: `tendsto_sub_const_cobounded`
+  (`Topology/Bornology/BoundedOperation.lean:196`) for the six-line `norm_sub_norm_le` bound,
+  `continuousWithinAt_compl_self` (`Topology/ContinuousOn.lean:307`) for the
+  `nhdsNE_sup_pure`/`tendsto_sup` split, and `Set.eqOn_indicator` + `Set.EqOn.eventuallyEq_of_mem`
+  for both `filter_upwards … Set.indicator_of_mem` blocks. `tendsto_weierstrassP_cobounded` went
+  to term mode; on `(-2 : WithTop ℤ) < 0` only `decide` and `norm_cast` work, and `norm_cast`
+  lands the line at exactly 100 characters, so `decide` stayed. Reverted: dropping the `hzw` `have`
+  in `exists_weierstrassP_eq` breaks metavariable ordering in `rw [Set.indicator_of_mem …]`.
 
 ### [T020] `eventually_weierstrassP_add_eq_add`
 - **Status**: done (finished 2026-09-10)
@@ -924,7 +937,8 @@ Transcribe `PeriodPair.two_mul_mem_lattice_of_derivWeierstrassP_eq_zero`
 - As stated; `c = 0` handled by the same proof (`0 ∈ Λ` makes `by_contra` immediate).
 
 ### [CLEANUP-10] Run /cleanup on J (after T020–T022)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over J (see CLEANUP-11).
   **Type**: cleanup
 - **Description**: per-file cadence cleanup. Check whether `HalfPeriods.lean`'s three specific
   lemmas can now be one-line corollaries of T020–T022 (`a := z₀`, `b := -z₀`); if so, record a
@@ -987,7 +1001,13 @@ theorem weierstrassP_eq_iff {a b : ℂ} (ha : a ∉ L.lattice) (hb : b ∉ L.lat
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-11] Run /cleanup on J (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 190 → 188 lines. `neg_mem_iff.mp` replaces the duplicated
+  `by simpa using neg_mem hmem` at both `-x ∉ Λ` sites, and the two near-identical
+  `ContinuousAt`-then-`simpa using h.tendsto` blocks inside `hcont` factor through one
+  `key : ∀ c : ℂ, Tendsto (fun t : ℝ ↦ c + t) (𝓝 0) (𝓝 c)`. A second, independent audit found
+  nothing further worth a round: names are clean snake_case, all five are docstringed, no
+  `λ`/`$`/`push_neg`/`set_option`, no `≥`/`>` in Lean code, max width 100.
 
 ### [T025] `weierstrassPoint` API
 - **Status**: done (finished 2026-09-10)
@@ -1726,6 +1746,43 @@ theorem exists_curveIntegral_eq_of_mem_lattice {l : ℂ} (hl : l ∈ W.periodPai
   specialised lemmas should be re-derived from `Injective.lean` (follow-up recorded at
   CLEANUP-10), and whether the four PR #5370 files must stay byte-identical (they are untouched
   by this board; keep it so).
+
+#### Decision on re-deriving `HalfPeriods.lean` — not now, and here is why (2026-09-10)
+The derivation **works**: both specialisations were written out and compiled clean against
+`Injective.lean` (scratch probe, no errors).
+`two_mul_mem_lattice_of_derivWeierstrassP_eq_zero` is
+`sub_mem_lattice_of_weierstrassP_eq_of_derivWeierstrassP_eq` at `(z₀, -z₀)` with
+`℘(z₀) = ℘(-z₀)` from evenness and `℘'(z₀) = ℘'(-z₀)` from `℘'(z₀) = 0`, finished by
+`rwa [show z₀ - -z₀ = 2 * z₀ by ring]`; `weierstrassP_add_eq_sub_of_derivWeierstrassP_eq_zero` is
+`weierstrassP_add_eq_add_of_eq` at the same pair, finished by rewriting `℘(-z₀ + z)` to
+`℘(z₀ - z)` through `weierstrassP_neg`. Watch the sign in the side condition: from
+`z₀ - z ∉ Λ` you get `-z₀ + z ∉ Λ` only via `simpa [show -(-z₀ + z) = z₀ - z by ring]`.
+
+It is **not** applied, because `Injective.lean` imports `HalfPeriods.lean` — it needs that file's
+infrastructure half (`Complex.isPreconnected_compl_of_countable`, `countable_lattice`,
+`hasDerivAt_weierstrassP`, `hasDerivAt_derivWeierstrassP`). Inverting the dependency means
+splitting `HalfPeriods.lean` in two — infrastructure below `Injective.lean`, half-period results
+above it — which restructures a pre-existing file this board otherwise never touches, for a
+saving of roughly 90 lines. Of the three specialised lemmas only
+`two_mul_mem_lattice_of_derivWeierstrassP_eq_zero` has a caller outside the file
+(`RealAxis.lean:233`); the other two are internal stepping stones. That is the user's call, not
+this board's.
+
+#### Further follow-ups surfaced by the cleanup pass (none applied — all need out-of-scope edits)
+- `differentiable_inv_weierstrassP_sub` has exactly one consumer, in its own file, so it should be
+  `private`; and its conclusion strengthens to `AnalyticOnNhd ℂ _ Set.univ` at **zero** proof cost,
+  since the proof already produces `AnalyticAt` everywhere and throws it away via
+  `.differentiableAt`. Both are edits to a ticketed statement, which is protected, so neither was
+  made.
+- That lemma's abstract form — closed pole set `S`, `f` analytic off `S`, `f → ∞` on `S`, `f` omits
+  `c` — carries the same proof verbatim and is a plausible Mathlib contribution in its own right.
+- `PeriodPair.eventually_notMem_lattice` (`Uniqueness.lean:56`) is stated only at `0`. Generalised
+  to an arbitrary point it would discharge the `hpunct` step in `Surjective.lean` and the
+  analogous steps at `HalfPeriods.lean:107`, `HalfPeriods.lean:231` and `Injective.lean:143`.
+- Upstreaming case confirmed by search: Loogle and an exhaustive grep of `.lake/packages/mathlib`
+  return **zero** declarations mentioning `weierstrassP` together with
+  `Tendsto`/`cobounded`/`Surjective`, and no `℘ − c` API at all. Both gaps this board closed are
+  genuine.
 
 ---
 
