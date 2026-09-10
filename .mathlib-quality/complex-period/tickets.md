@@ -400,7 +400,8 @@ lemma continuousOn_invariantDifferential :
   unused in `continuousOn` — keep the set as stated for downstream use).
 
 ### [CLEANUP-4] Run /cleanup on ID (after T007–T009)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over ID (see CLEANUP-6).
   **Type**: cleanup
 - **Description**: per-file cadence cleanup (3 proof tickets). Also: `toShortModel_apply` is
   `rfl` — decide `@[simp]` vs unfolding; check the `NeZero` section variables produce no
@@ -511,7 +512,8 @@ lemma image_toShortModel_affineNonTwoTorsion :
 - As T011.
 
 ### [CLEANUP-5] Run /cleanup on ID (after T010–T012)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over ID (see CLEANUP-6).
   **Type**: cleanup
 - **Description**: per-file cadence cleanup (6 proof tickets on ID so far).
 
@@ -545,7 +547,19 @@ lemma invariantDifferential_shortModel_comp (p : F × F) :
 - `NontriviallyNormedField F`, `NeZero 2`.
 
 ### [CLEANUP-6] Run /cleanup on ID (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: docstrings added to the 7 undocumented public declarations
+  (`mem_affineNonTwoTorsion`, `toShortModel_apply`, `toShortModel_mem_affineNonTwoTorsion_iff`,
+  `invariantDifferential_apply`, `continuousOn_invariantDifferential`, `toShortModelLinear_apply`,
+  `toShortModel_eq`); a docstring after `omit [...] in` parses fine. Then the held-back
+  simplifications were applied (commit `c3bf8869`, 247 → 236 lines): the five nested
+  `mul_ne_zero` chains for 12, 48, 216, 864 became one private
+  `ne_zero_of_eq_two_pow_mul_three_pow` reading the fact off `NeZero.pow`/`NeZero.mul`;
+  `continuousOn_invariantDifferential` went to term mode; `hden` and
+  `invariantDifferential_shortModel_comp` dropped `hhalf` for `field_simp; ring`; redundant
+  `WeierstrassCurve.` prefixes removed inside the namespace. Not applied, deliberately: dropping
+  the unused `[NeZero (2 : F)]` from `toShortModelLinear` — the section is scoped to
+  characteristic ≠ 2 by design, so removing it second-guesses the intent.
 - **Description**: final per-file cleanup for ID. Naming review: `affineNonTwoTorsion`,
   `toShortModel`, `toShortModelLinear`, `shortModel` — align with Mathlib's `VariableChange`
   vocabulary if a reviewer would expect it; keep unless clearly better.
@@ -618,7 +632,14 @@ theorem integralPeriodLattice_shortModel :
 - ℂ (definition site); `NeZero (2:ℂ)`, `NeZero (3:ℂ)` are instances.
 
 ### [CLEANUP-7] Run /cleanup on IPL
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 106 → 108 lines. Docstrings added to `mem_integralPeriodLattice_iff`,
+  `affineNonTwoTorsion_nonempty`, `zero_mem_integralPeriodLattice`,
+  `neg_mem_integralPeriodLattice`. `affineNonTwoTorsion_nonempty`: the single-use
+  `have h4 : (4 : ℂ) ≠ 0` inlined, redundant `WeierstrassCurve.` prefixes dropped, and the final
+  branch's `show`/`rw`/`exact` collapsed to one `rwa [show … = s by ring]` (`simpa using hs0`
+  fails). `integralPeriodLattice_shortModel`: a 101-character line repacked, and
+  `Set.image_congr` → `image_congr` to match the file's `open Set`.
   **Type**: cleanup
 - **Description**: final per-file cleanup for IPL (2 proof tickets).
 
