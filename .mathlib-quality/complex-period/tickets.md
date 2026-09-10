@@ -39,13 +39,23 @@ One sub-ticket was spawned during execution: **T027a**, the fundamental theorem 
 closed interval — Mathlib's `intervalIntegral.integral_hasDerivWithinAt_right` is gated on the
 `FTCFilter` class, which has instances only for `pure`, `𝓝`, `𝓝[≤]`, `𝓝[≥]`, and none for `Icc`.
 
-Remaining: the `CLEANUP-*` tickets (dispatched to `/cleanup` subagents), then `CLEANUP-ALL-1`
-and `CLEANUP-FINAL`.
+**All 59 tickets are now done**, cleanups included. After the cleanup pass the eleven files are
+**1588 lines and 81 declarations (7 private), every one documented**; zero sorries, zero lines over
+100 characters, no scratch blocks. Both gates CI actually runs are green:
+`lake --wfail build FormalConjecturesForMathlib FormalConjecturesUtil` (8926 jobs) and
+`lake --wfail test` (8933 jobs), each exit 0 with warnings as errors. `./scripts/mk_all_formathlib.sh`
+reports "No update necessary". `#print axioms` on the milestone and on the five other headline
+results shows only `propext`, `Classical.choice`, `Quot.sound`. The four PR #5370 files are still
+byte-identical to branch `integralPeriod`.
+
+Cleanup commits: `2692e0ff` (M, T, FundThmCalculus), `5dbaf7ac` (the six missing docstrings),
+`c3bf8869` (ID), `04e37532` (S, J), `737f4405` (L, WP, CP), plus `9c8d2935` untracking the
+beastmode session sentinels that a `git add -A` had swept into `3f2e4b6a` and `8b6667cd`.
 
 ## Summary
 - Total: 59 tickets = 40 proof/definition tickets + 17 per-file cleanups + CLEANUP-ALL-1 +
   CLEANUP-FINAL.
-- Open: 59 | In Progress: 0 | Done: 0.
+- Open: 0 | In Progress: 0 | Done: 59 (all closed 2026-09-10).
 - Parallel capacity: 5 workers at the start (T001, T004, T006, T007, T016, T020, T026, T032 are
   pairwise independent; files M, T, ID, S, J are independent fronts).
 - Milestone: T039 `integralPeriodLattice_eq` (preceded by CLEANUP-ALL-1).
@@ -1192,7 +1202,8 @@ after `Set.uIcc_subset_Icc`), a `StronglyMeasurableAtFilter` obligation
   `=ᶠ` arguments. Minimal — exactly the use site in T027.
 
 ### [CLEANUP-12] Run /cleanup on L (after T025–T027)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over L (see CLEANUP-14).
   **Type**: cleanup
 
 ### [T028] `isClosed_setOf_weierstrassPoint_lift_eq`
@@ -1347,7 +1358,8 @@ lemma eventually_weierstrassPoint_lift_eq (z₀ : ℂ) {t : ℝ} (ht : t ∈ I) 
 - Any path.
 
 ### [CLEANUP-13] Run /cleanup on L (after T028–T030)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over L (see CLEANUP-14).
   **Type**: cleanup
 
 ### [T031] `weierstrassPoint_lift` and `lift_notMem_lattice`
@@ -1385,7 +1397,22 @@ Prove one `private`/auxiliary statement `∀ t ∈ I, lift t ∉ Λ ∧ weierstr
 - Any path; `hz₀`, `hp` exactly the data of a starting point over `γ 0`.
 
 ### [CLEANUP-14] Run /cleanup on L (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 356 → 339 lines. `exists_localLift`'s body went 73 → 40 by naming the three
+  steps it was doing inline, each now a documented `private`: `derivWeierstrassP_sq_eq_sq`
+  (curve-equation algebra, previously buried three `have`s deep),
+  `eventually_derivWeierstrassP_eq_two_mul` (the mathematical heart — the sign of `℘'` locked by
+  continuity), and `hasDerivWithinAt_localInverse_comp` (the local inverse solves the same ODE).
+  Taking the local inverse abstractly as `f : ℝ → ℂ` removed three `rw [hψt]` base-point shuffles,
+  and naming `x` removed five repetitions of `ψ ((γ.extend u).1)`.
+  `isClosed_setOf_weierstrassPoint_lift_eq` 29 → 16: the "on `S` the lift covers the path" fact was
+  being re-derived twice, and `Metric.disjoint_nhds_cobounded` replaced the `‖·‖`/`atTop` detour.
+  `eventually_weierstrassPoint_lift_eq` 31 → 24 — `set d := min …` was the root cause of three
+  `rw [← hd]` shuffles, replaced by an opaque `obtain`. The displaced
+  **The elliptic integral inverts ℘ along a path** docstring moved off `lift_spec` back onto
+  `weierstrassPoint_lift`. Imports reordered (`MeasureTheory` was before `Analysis`). All three
+  load-bearing workarounds verified intact: both `ContinuousAt.comp (f := …) (x := …)` sites, the
+  `hcomp` type ascription, and `h1.trans hpt.symm`.
 - **Description**: final cleanup for L; if `weierstrassPoint_lift`/`lift_notMem_lattice` share a
   private conjunction, keep it `private`.
 
@@ -1516,7 +1543,8 @@ lemma curveIntegral_weierstrassLoop :
 - As T033.
 
 ### [CLEANUP-15] Run /cleanup on WP (after T032–T034)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: covered by the single /cleanup pass over WP (see CLEANUP-16).
   **Type**: cleanup
 
 ### [T035] `mem_integralPeriodLattice_of_mem_lattice`
@@ -1606,7 +1634,17 @@ theorem integralPeriodLattice_weierstrassCurve :
 - Arbitrary `PeriodPair`.
 
 ### [CLEANUP-16] Run /cleanup on WP (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 224 → 210 lines. `exists_forall_two_mul_add_mul_notMem_lattice` 25 → 9, and the
+  gain is mathematical, not cosmetic: dividing by `l` instead of multiplying by `conj l` removes
+  the need for `conj l ≠ 0`, `conj l * l ≠ 0` and `Im (conj l * l) = 0`, and leaves the base point
+  division-free (`I·c·l`, not `I·c·l / (conj l · l)`); the half-lattice is then
+  `{z | 2 * z ∈ L.lattice}` via `Countable.preimage (mul_right_injective₀ two_ne_zero)`, which
+  drops the image construction and `hmem` with it. Six docstrings written by hand (see the note
+  under CLEANUP-ALL-1 on `/- ## -/` not being a docstring). New private
+  `notMem_lattice_of_two_mul_notMem` replaces the `hz` derivation that was repeated verbatim at
+  three sites; its body needs `two_mul (z₀ + (t : ℂ) * l) ▸ add_mem hm hm` written out, since bare
+  `two_mul _ ▸ …` leaves a stuck `NonAssocSemiring ?m` metavariable.
 
 ### [T038] `periodPair_weierstrassCurve`
 - **Status**: done (finished 2026-09-10)
@@ -1634,7 +1672,7 @@ lemma periodPair_weierstrassCurve : W.periodPair.weierstrassCurve = W.shortModel
 - `W : WeierstrassCurve ℂ`, `[W.IsElliptic]` (for `periodPair`).
 
 ### [CLEANUP-ALL-1] Run /cleanup-all on the project so far
-- **Status**: open · **File**: all new files · **Depends on**: CLEANUP-1, -2, -3, -6, -7, -9,
+- **Status**: done (finished 2026-09-10) · · **File**: all new files · **Depends on**: CLEANUP-1, -2, -3, -6, -7, -9,
   -11, -14, -16, T038 · **Parallel**: no · **Type**: cleanup-all
 - **Description**: project-wide pass before the milestone: naming consistency across the ten
   files (`affineNonTwoTorsion`, `weierstrassPoint`, `weierstrassLoop`, `lift`,
@@ -1738,10 +1776,15 @@ theorem exists_curveIntegral_eq_of_mem_lattice {l : ℂ} (hl : l ∈ W.periodPai
 - As T039. This is a shared-witness existential by nature (a loop and its properties).
 
 ### [CLEANUP-17] Run /cleanup on CP (final)
-- **Status**: in_progress (dispatched to a /cleanup subagent 2026-09-10)
+- **Status**: done (finished 2026-09-10)
+- **Progress**: 91 → 88 lines; essentially nothing to do, as expected for three declarations.
+  `exists_curveIntegral_eq_of_mem_lattice` went to term mode,
+  `W.mem_integralPeriodLattice_iff.mp (W.integralPeriodLattice_eq ▸ hl)`; and
+  `periodPair_weierstrassCurve`'s two single-use `have`s inlined into the `simp only` set. Module
+  docstring, import order, line widths and docstring coverage were already correct.
 
 ### [CLEANUP-FINAL] Run /cleanup-all on the whole project
-- **Status**: open · **Depends on**: every other ticket · **Type**: cleanup-all
+- **Status**: done (finished 2026-09-10) · · **Depends on**: every other ticket · **Type**: cleanup-all
 - **Description**: final pass; then `/pre-submit`. Also decide whether `HalfPeriods.lean`'s
   specialised lemmas should be re-derived from `Injective.lean` (follow-up recorded at
   CLEANUP-10), and whether the four PR #5370 files must stay byte-identical (they are untouched
