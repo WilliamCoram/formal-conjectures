@@ -16,10 +16,10 @@ limitations under the License.
 module
 
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.IntegralPeriodLattice
-public import FormalConjecturesForMathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.HalfPeriods
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Surjective
+public import FormalConjecturesForMathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 public import FormalConjecturesForMathlib.Topology.Algebra.Field
 public import Mathlib.Analysis.Calculus.InverseFunctionTheorem.Deriv
 
@@ -65,12 +65,16 @@ variable (L : PeriodPair)
 \frac{g_3}{4}$ of the lattice. -/
 def weierstrassPoint (z : ℂ) : ℂ × ℂ := (℘[L] z, ℘'[L] z / 2)
 
+/-- The $X$-coordinate of $(\wp(z), \frac12 \wp'(z))$ is $\wp(z)$. -/
 @[simp]
 lemma weierstrassPoint_fst (z : ℂ) : (L.weierstrassPoint z).1 = ℘[L] z := rfl
 
+/-- The $Y$-coordinate of $(\wp(z), \frac12 \wp'(z))$ is $\frac12 \wp'(z)$. -/
 @[simp]
 lemma weierstrassPoint_snd (z : ℂ) : (L.weierstrassPoint z).2 = ℘'[L] z / 2 := rfl
 
+/-- The uniformisation $z \mapsto (\wp(z), \frac12 \wp'(z))$ is $\Lambda$-periodic, since both
+$\wp$ and $\wp'$ are. -/
 lemma weierstrassPoint_add_coe (z : ℂ) (l : L.lattice) :
     L.weierstrassPoint (z + l) = L.weierstrassPoint z := by
   simp [weierstrassPoint, L.weierstrassP_add_coe, L.derivWeierstrassP_add_coe]
@@ -88,6 +92,8 @@ lemma weierstrassPoint_mem_affineNonTwoTorsion {z : ℂ} (hz : 2 * z ∉ L.latti
     rw [show 2 * (℘'[L] z / 2) + (0 : ℂ) * ℘[L] z + 0 = ℘'[L] z by ring]
     exact fun hcon ↦ hz ((L.derivWeierstrassP_eq_zero_iff hz').mp hcon)
 
+/-- Off the lattice the uniformisation is differentiable, with derivative
+$(\wp'(z), \frac12 \wp''(z))$; here $\wp'' = 6 \wp^2 - \frac{g_2}{2}$. -/
 lemma hasDerivAt_weierstrassPoint {z : ℂ} (hz : z ∉ L.lattice) :
     HasDerivAt L.weierstrassPoint (℘'[L] z, (6 * ℘[L] z ^ 2 - L.g₂ / 2) / 2) z :=
   (L.hasDerivAt_weierstrassP hz).prodMk ((L.hasDerivAt_derivWeierstrassP hz).div_const 2)
@@ -99,6 +105,9 @@ lemma invariantDifferential_weierstrassPoint (z : ℂ) (v : ℂ × ℂ) :
   congr 1
   ring
 
+/-- Off the lattice $\wp$ is *strictly* differentiable with derivative $\wp'$. This is the form
+required by the inverse function theorem, which supplies the local inverse of $\wp$ used in
+`PeriodPair.exists_localLift`. -/
 lemma hasStrictDerivAt_weierstrassP {z : ℂ} (hz : z ∉ L.lattice) :
     HasStrictDerivAt ℘[L] (℘'[L] z) z := by
   have h := (L.analyticOnNhd_weierstrassP z hz).hasStrictDerivAt
@@ -113,6 +122,7 @@ $z(t) = z_0 + \int_0^t \omega(\gamma(u))(\gamma'(u)) \, du$. -/
 def lift (z₀ : ℂ) (t : ℝ) : ℂ :=
   z₀ + ∫ u in (0 : ℝ)..t, curveIntegralFun L.weierstrassCurve.invariantDifferential γ u
 
+/-- The lift of a path through $z_0$ starts at $z_0$. -/
 @[simp]
 lemma lift_zero (z₀ : ℂ) : L.lift γ z₀ 0 = z₀ := by simp [lift]
 
@@ -124,6 +134,9 @@ lemma lift_one (z₀ : ℂ) :
 variable (hγ : ContDiffOn ℝ 1 γ.extend I) (hS : range γ ⊆ L.weierstrassCurve.affineNonTwoTorsion)
 include hγ hS
 
+/-- The integrand $u \mapsto \omega(\gamma(u))(\gamma'(u))$ defining the lift is continuous on
+$[0, 1]$: the path is $C^1$ and $\omega = dX / (2Y)$ has no pole away from the points of order
+two, which $\gamma$ avoids. -/
 lemma continuousOn_curveIntegralFun_invariantDifferential :
     ContinuousOn (curveIntegralFun L.weierstrassCurve.invariantDifferential γ) I := by
   simp only [funext (curveIntegralFun_def L.weierstrassCurve.invariantDifferential γ)]
@@ -132,11 +145,14 @@ lemma continuousOn_curveIntegralFun_invariantDifferential :
   exact L.weierstrassCurve.continuousOn_invariantDifferential.comp (by fun_prop)
     fun _t _ ↦ hS (γ.extend_range ▸ Set.mem_range_self _t)
 
+/-- The fundamental theorem of calculus for the lift: $z'(t) = \omega(\gamma(t))(\gamma'(t))$
+on $[0, 1]$. -/
 lemma hasDerivWithinAt_lift (z₀ : ℂ) {t : ℝ} (ht : t ∈ I) : HasDerivWithinAt (L.lift γ z₀)
     (curveIntegralFun L.weierstrassCurve.invariantDifferential γ t) I t :=
   (intervalIntegral.integral_hasDerivWithinAt_Icc zero_lt_one
     (L.continuousOn_curveIntegralFun_invariantDifferential γ hγ hS) ht).const_add z₀
 
+/-- The lift of a path is continuous on $[0, 1]$. -/
 lemma continuousOn_lift (z₀ : ℂ) : ContinuousOn (L.lift γ z₀) I :=
   fun _t ht ↦ (L.hasDerivWithinAt_lift γ hγ hS z₀ ht).continuousWithinAt
 
@@ -294,8 +310,10 @@ lemma eventually_weierstrassPoint_lift_eq (z₀ : ℂ) {t : ℝ} (ht : t ∈ I) 
   rw [hkey u hu']
   exact (hball (hballu u hu')).1
 
-/-- **The elliptic integral inverts $\wp$ along a path**: the lift of $\gamma$ through $z_0$
-covers $\gamma$. -/
+/-- The two conclusions of `PeriodPair.weierstrassPoint_lift` and
+`PeriodPair.lift_notMem_lattice`, proved together because the continuous induction on $t$ needs
+both: staying off the lattice is what keeps $\wp$ finite, and covering $\gamma$ is what keeps the
+lift off the lattice. -/
 private lemma lift_spec {z₀ : ℂ} (hz₀ : z₀ ∉ L.lattice) (hp : L.weierstrassPoint z₀ = p)
     {t : ℝ} (ht : t ∈ I) : L.lift γ z₀ t ∉ L.lattice ∧
       L.weierstrassPoint (L.lift γ z₀ t) = γ.extend t := by
@@ -306,10 +324,14 @@ private lemma lift_spec {z₀ : ℂ} (hz₀ : z₀ ∉ L.lattice) (hp : L.weiers
   · exact L.eventually_weierstrassPoint_lift_eq γ hγ hS z₀ ⟨hx.2.1, hx.2.2.le⟩ hx.2.2
       hx.1.1 hx.1.2
 
+/-- **The elliptic integral inverts $\wp$ along a path**: the lift of $\gamma$ through $z_0$
+covers $\gamma$. -/
 theorem weierstrassPoint_lift {z₀ : ℂ} (hz₀ : z₀ ∉ L.lattice) (hp : L.weierstrassPoint z₀ = p)
     {t : ℝ} (ht : t ∈ I) : L.weierstrassPoint (L.lift γ z₀ t) = γ.extend t :=
   (L.lift_spec γ hγ hS hz₀ hp ht).2
 
+/-- The lift of $\gamma$ through $z_0$ never meets the lattice, so $\wp$ and $\wp'$ stay finite
+along it. -/
 lemma lift_notMem_lattice {z₀ : ℂ} (hz₀ : z₀ ∉ L.lattice) (hp : L.weierstrassPoint z₀ = p)
     {t : ℝ} (ht : t ∈ I) : L.lift γ z₀ t ∉ L.lattice :=
   (L.lift_spec γ hγ hS hz₀ hp ht).1

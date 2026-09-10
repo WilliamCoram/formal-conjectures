@@ -47,35 +47,32 @@ variable {𝕜 E E' F : Type*} [RCLike 𝕜] [NormedAddCommGroup E] [NormedSpace
   [NormedAddCommGroup E'] [NormedSpace 𝕜 E'] [NormedAddCommGroup F] [NormedSpace 𝕜 F]
   [NormedSpace ℝ E] [NormedSpace ℝ E']
 
-/-- The periods of a 1-form `ω` on a set `S`: the integrals of `ω` along the `C¹` loops in `S`.
--/
+/-- The periods of a 1-form `ω` on a set `S`: the integrals of `ω` along the `C¹` loops in `S`. -/
 def curveIntegralPeriods (ω : E → E →L[𝕜] F) (S : Set E) : Set F :=
   {w | ∃ (p : E) (γ : Path p p), ContDiffOn ℝ 1 γ.extend I ∧ range γ ⊆ S ∧ ∫ᶜ x in γ, ω x = w}
 
 variable {ω : E → E →L[𝕜] F} {S T : Set E}
 
+/-- The integral of `ω` along a `C¹` loop with image in `S` is a period of `ω` on `S`. -/
 lemma curveIntegral_mem_curveIntegralPeriods {p : E} (γ : Path p p)
     (hγ : ContDiffOn ℝ 1 γ.extend I) (hS : range γ ⊆ S) :
-    ∫ᶜ x in γ, ω x ∈ curveIntegralPeriods ω S :=
-  ⟨p, γ, hγ, hS, rfl⟩
+    ∫ᶜ x in γ, ω x ∈ curveIntegralPeriods ω S := ⟨p, γ, hγ, hS, rfl⟩
 
-lemma curveIntegralPeriods_mono (h : S ⊆ T) :
-    curveIntegralPeriods ω S ⊆ curveIntegralPeriods ω T := by
-  rintro w ⟨p, γ, hγ, hS, rfl⟩
-  exact ⟨p, γ, hγ, hS.trans h, rfl⟩
+/-- The periods of `ω` on `S` are periods of `ω` on any larger set. -/
+lemma curveIntegralPeriods_mono (h : S ⊆ T) : curveIntegralPeriods ω S ⊆ curveIntegralPeriods ω T :=
+  fun _ ⟨p, γ, hγ, hS, rfl⟩ ↦ ⟨p, γ, hγ, hS.trans h, rfl⟩
 
-lemma zero_mem_curveIntegralPeriods (hS : S.Nonempty) : 0 ∈ curveIntegralPeriods ω S := by
-  obtain ⟨p, hp⟩ := hS
-  exact ⟨p, .refl p, contDiffOn_const, by simpa using hp, curveIntegral_refl ω p⟩
+/-- Zero is a period of `ω` on any nonempty set. -/
+lemma zero_mem_curveIntegralPeriods (hS : S.Nonempty) : 0 ∈ curveIntegralPeriods ω S :=
+  hS.imp fun p hp ↦ ⟨.refl p, contDiffOn_const, by simpa using hp, curveIntegral_refl ω p⟩
 
+/-- The periods of `ω` on `S` are stable under negation. -/
 lemma neg_mem_curveIntegralPeriods {w : F} (hw : w ∈ curveIntegralPeriods ω S) :
     -w ∈ curveIntegralPeriods ω S := by
   obtain ⟨p, γ, hγ, hS, rfl⟩ := hw
   refine ⟨p, γ.symm, ?_, by rwa [γ.symm_range], curveIntegral_symm ω γ⟩
-  have h1 : ContDiff ℝ 1 (fun t : ℝ ↦ 1 - t) := by fun_prop
-  have hsub : ContDiffOn ℝ 1 (fun t : ℝ ↦ 1 - t) I := h1.contDiffOn
   rw [Path.extend_symm]
-  exact hγ.comp hsub fun t ht ↦ ⟨by linarith [ht.2], by linarith [ht.1]⟩
+  exact hγ.comp (by fun_prop) fun _ ↦ Set.Icc.mem_iff_one_sub_mem.mp
 
 variable [NormedSpace ℝ F] [IsScalarTower ℝ 𝕜 E] [IsScalarTower ℝ 𝕜 E']
 

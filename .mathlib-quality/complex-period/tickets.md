@@ -157,7 +157,8 @@ theorem curveIntegral_map_add_const (ω : E' → E' →L[𝕜] F) (A : E →L[�
 - As T002.
 
 ### [CLEANUP-1] Run /cleanup on M
-- **Status**: in_progress (dispatched to subagent 2026-09-10) · **File**: M · **Depends on**: T003 · **Parallel**: no · **Type**: cleanup
+- **Status**: done (finished 2026-09-10)
+- **Progress**: /cleanup subagent found nothing to change — all three declarations already carry docstrings, the file builds with no errors and no warnings, and every line is under 100 characters.
 - **Description**: third and last proof ticket on M (T001–T003) → per-file cleanup + final
   cleanup for M in one pass. Check: `Path.extend_map'` could be a `@[simp]` lemma; consider a
   `ContinuousAffineMap` version of T003 only if free.
@@ -1582,6 +1583,26 @@ lemma periodPair_weierstrassCurve : W.periodPair.weierstrassCurve = W.shortModel
   files (`affineNonTwoTorsion`, `weierstrassPoint`, `weierstrassLoop`, `lift`,
   `integralPeriodLattice`), docstring cross-references (each file's module docstring names the
   others correctly), import minimisation, `#print axioms` on T019, T023, T031, T037.
+
+#### Naming review (done read-only 2026-09-10; 76 declarations across 12 files)
+Names are consistent with mathlib conventions — `mem_`/`exists_`/`eq_`/`_of_` prefixes and
+suffixes are used in the standard senses, `_fst`/`_snd` match `Prod`, `integral_hasDerivWithinAt_Icc`
+matches Mathlib's `integral_hasDerivWithinAt_right`, and the `Ψ₂Sq`/`weierstrassP` spellings match
+their Mathlib sources. Two follow-ups, neither actioned because renaming cascades across files and
+the ticketed statements are protected:
+
+1. **`PeriodPair.lift` is too generic** for the `PeriodPair` namespace — it is specifically the
+   lift of a path through `℘`. `pathLift` or `liftAlong` would read better. Renaming touches
+   `Lift.lean`, `Weierstrass/Periods.lean` and the ticket statements.
+2. **`exists_localLift`** names a `localLift` that has no corresponding definition; if it is kept,
+   a `def localLift` would justify the name, otherwise something like
+   `exists_eventually_weierstrassPoint_eq` is more descriptive.
+
+#### Docstring coverage
+33 declarations were found without docstrings and the lists were handed to the per-file cleanup
+agents. One was a defect of mine rather than an omission: the docstring for
+`weierstrassPoint_lift` ended up above the `private lemma lift_spec` inserted beneath it.
+
 
 ### [T039] `integralPeriodLattice_eq` — MILESTONE
 - **Status**: done (finished 2026-09-10)
