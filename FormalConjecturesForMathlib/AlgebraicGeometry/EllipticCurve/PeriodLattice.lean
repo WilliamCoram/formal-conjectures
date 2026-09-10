@@ -15,14 +15,13 @@ limitations under the License.
 -/
 module
 
-public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealComponents
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Conjugation
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence
 
 @[expose] public noncomputable section
 
 /-!
-# The real period of an elliptic curve
+# The period lattice and the least positive real period of an elliptic curve
 
 Every elliptic curve $E$ over $\mathbb{C}$ is $\mathbb{C} / \Lambda$ for a lattice $\Lambda$,
 determined by $E$ through its invariants: $g_2(\Lambda) = \frac{c_4}{12}$ and
@@ -34,14 +33,20 @@ lattice of $E$.
 If $E$ is defined over $\mathbb{R}$ then $\Lambda$ is stable under complex conjugation, and
 $\Lambda \cap \mathbb{R} = \mathbb{Z} \Omega_0$ for a unique $\Omega_0 > 0$, the least positive
 real period, which is the length of the identity component of $E(\mathbb{R})$. The *real period*
-of $E$, the one in the Birch and Swinnerton-Dyer conjecture, is $\Omega_0$ or $2\Omega_0$
-according as the discriminant is negative or positive: $\Omega_0$ times the number of connected
-components of $E(\mathbb{R})$, `WeierstrassCurve.nrRealComponents`.
+of the Birch and Swinnerton-Dyer conjecture is the integral of the invariant differential over all
+of $E(\mathbb{R})$; it is defined in
+`FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral` as
+`WeierstrassCurve.realPeriodIntegral`, and equals $2\Omega_0$ or $\Omega_0$ according as the
+discriminant is positive or negative, by
+`WeierstrassCurve.realPeriodIntegral_eq_two_mul_leastRealPeriod` and
+`WeierstrassCurve.realPeriodIntegral_eq_leastRealPeriod` in
+`FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod`. The lattice side
+defines only $\Omega_0$: without a description of the connected components of $E(\mathbb{R})$
+it has no intrinsic account of the factor $2$.
 
 This file defines the period lattice of a Weierstrass curve over $\mathbb{C}$,
-`WeierstrassCurve.periodPair`, the least positive real period of an elliptic curve over
-$\mathbb{R}$, `WeierstrassCurve.leastRealPeriod`, and the real period `WeierstrassCurve.realPeriod`.
-They rest on three classical facts:
+`WeierstrassCurve.periodPair`, and the least positive real period of an elliptic curve over
+$\mathbb{R}$, `WeierstrassCurve.leastRealPeriod`. They rest on three classical facts:
 
 * `PeriodPair.exists_g₂_g₃`: a lattice with any prescribed nondegenerate invariants exists.
   Proved in `FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence`,
@@ -182,23 +187,6 @@ def leastRealPeriod (W : WeierstrassCurve ℝ) [W.IsElliptic] : ℝ :=
 
 lemma leastRealPeriod_pos (W : WeierstrassCurve ℝ) [W.IsElliptic] : 0 < W.leastRealPeriod :=
   PeriodPair.leastRealPeriod_pos _ _
-
-/-- **The real period** of an elliptic curve over $\mathbb{R}$: the least positive real period
-multiplied by the number of connected components of $E(\mathbb{R})$. This is the real period of the
-Birch and Swinnerton-Dyer conjecture. -/
-def realPeriod (W : WeierstrassCurve ℝ) [W.IsElliptic] : ℝ :=
-  (W.nrRealComponents : ℝ) * W.leastRealPeriod
-
-lemma realPeriod_pos (W : WeierstrassCurve ℝ) [W.IsElliptic] : 0 < W.realPeriod :=
-  mul_pos (Nat.cast_pos.mpr W.nrRealComponents_pos) W.leastRealPeriod_pos
-
-lemma realPeriod_of_pos (W : WeierstrassCurve ℝ) [W.IsElliptic] (h : 0 < W.Δ) :
-    W.realPeriod = 2 * W.leastRealPeriod := by
-  simp [realPeriod, W.nrRealComponents_of_pos h]
-
-lemma realPeriod_of_neg (W : WeierstrassCurve ℝ) [W.IsElliptic] (h : W.Δ < 0) :
-    W.realPeriod = W.leastRealPeriod := by
-  simp [realPeriod, W.nrRealComponents_of_neg h]
 
 end WeierstrassCurve
 

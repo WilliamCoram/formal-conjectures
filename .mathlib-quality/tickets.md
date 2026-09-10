@@ -864,7 +864,8 @@ Stated with `W.leastRealPeriod` (the project's definition) on the right so that 
 - **Status**: done (finished 2026-09-08T19:10Z)
 - **Progress**:
   - 2026-09-08T19:10: DONE — `leastRealPeriodIntegral_eq_leastRealPeriod` and
-    `realPeriodIntegral_eq_realPeriod` are proved, sorry-free, axioms
+    `realPeriodIntegral_eq_two_mul_leastRealPeriod` / `realPeriodIntegral_eq_leastRealPeriod`
+    are proved, sorry-free, axioms
     propext/Classical.choice/Quot.sound only. Same `IsLeast` type-ascription trick as T015.
 - **File**: FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean
 - **Depends on**: CLEANUP-ALL-1
@@ -876,7 +877,10 @@ Stated with `W.leastRealPeriod` (the project's definition) on the right so that 
 theorem leastRealPeriodIntegral_eq_leastRealPeriod :
     W.leastRealPeriodIntegral = W.leastRealPeriod := by sorry
 
-theorem realPeriodIntegral_eq_realPeriod : W.realPeriodIntegral = W.realPeriod := by sorry
+theorem realPeriodIntegral_eq_two_mul_leastRealPeriod (h : 0 < W.Δ) :
+    W.realPeriodIntegral = 2 * W.leastRealPeriod := by sorry
+theorem realPeriodIntegral_eq_leastRealPeriod (h : W.Δ < 0) :
+    W.realPeriodIntegral = W.leastRealPeriod := by sorry
 ```
 
 #### Proof sketch
@@ -885,8 +889,14 @@ theorem realPeriodIntegral_eq_realPeriod : W.realPeriodIntegral = W.realPeriod :
    if `rw` fails to find the pattern inside the integrand lambda, use `simp only [← …]` or `show` with the explicit
    integrand).
 3. `rw [(W.periodPair_map_isReal).integral_inv_sqrt_eq_half (PeriodPair.isLeast_leastRealPeriod _ _)]; ring`.
-4. `realPeriodIntegral_eq_realPeriod`: `rw [realPeriodIntegral, realPeriod, W.leastRealPeriodIntegral_eq_leastRealPeriod]`.
-5. Verify: `#print axioms WeierstrassCurve.realPeriodIntegral_eq_realPeriod` → only `propext`, `Classical.choice`, `Quot.sound`.
+4. The two BSD-real-period corollaries: `rw [W.realPeriodIntegral_of_pos h,
+   W.leastRealPeriodIntegral_eq_leastRealPeriod]` and likewise with `_of_neg`. (Historical
+   note: originally one theorem `realPeriodIntegral_eq_realPeriod` against a lattice-side
+   `realPeriod := nrRealComponents * leastRealPeriod`; `nrRealComponents` was removed on
+   2026-09-10 as an unjustified component count, so the factor 2 is now supplied by the
+   integral side only.)
+5. Verify: `#print axioms WeierstrassCurve.realPeriodIntegral_eq_two_mul_leastRealPeriod` → only
+   `propext`, `Classical.choice`, `Quot.sound`.
 
 #### Mathlib lemmas needed
 `WeierstrassCurve.leastRealPeriodIntegral_eq_integral_depressed` (PeriodIntegral.lean), `PeriodPair.isLeast_leastRealPeriod`,

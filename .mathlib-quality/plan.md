@@ -8,13 +8,20 @@ Repository `formal-conjectures`, branch `periods`. Planned 2026-09-08. Lean v4.3
 theorem WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod
     (W : WeierstrassCurve ℝ) [W.IsElliptic] : W.leastRealPeriodIntegral = W.leastRealPeriod
 
-theorem WeierstrassCurve.realPeriodIntegral_eq_realPeriod
-    (W : WeierstrassCurve ℝ) [W.IsElliptic] : W.realPeriodIntegral = W.realPeriod
+theorem WeierstrassCurve.realPeriodIntegral_eq_two_mul_leastRealPeriod
+    (W : WeierstrassCurve ℝ) [W.IsElliptic] (h : 0 < W.Δ) :
+    W.realPeriodIntegral = 2 * W.leastRealPeriod
+theorem WeierstrassCurve.realPeriodIntegral_eq_leastRealPeriod
+    (W : WeierstrassCurve ℝ) [W.IsElliptic] (h : W.Δ < 0) :
+    W.realPeriodIntegral = W.leastRealPeriod
 ```
 
 `leastRealPeriodIntegral = 2 ∫_{e₁}^∞ dx/√(4x³ + b₂x² + 2b₄x + b₆)` (file `PeriodIntegral.lean`) and
 `leastRealPeriod` = least positive real element of the period lattice with `g₂ = c₄/12`, `g₃ = c₆/216`
-(file `RealPeriod.lean`). Both are then multiplied by `nrRealComponents` to give the real period of BSD.
+(file `RealPeriod.lean`). The BSD real period `realPeriodIntegral` is `2 ∫_ℝ dx/√F`, intrinsic to
+the integral side; its relation to the lattice is the sign-split pair of corollaries above. (The
+former lattice-side `realPeriod := nrRealComponents * leastRealPeriod` was removed on 2026-09-10:
+`nrRealComponents` was a discriminant-sign `if` with no connected-components theory behind it.)
 
 ## References (how each maps to the plan)
 

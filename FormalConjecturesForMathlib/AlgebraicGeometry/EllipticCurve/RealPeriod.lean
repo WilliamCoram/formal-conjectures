@@ -25,26 +25,27 @@ public import FormalConjecturesForMathlib.MeasureTheory.Integral.Bochner.Set
 /-!
 # The two definitions of the real period agree
 
-There are two definitions of the real period of an elliptic curve $E$ over $\mathbb{R}$.
+There are two definitions of the least positive real period of an elliptic curve $E$ over
+$\mathbb{R}$.
 
 * *From the period lattice.* `WeierstrassCurve.leastRealPeriod` is the least positive element of
   $\Lambda \cap \mathbb{R}$, where $\Lambda$ is the period lattice, the lattice with
-  $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$; the real period `WeierstrassCurve.realPeriod` is
-  $c_\infty$ times it, where $c_\infty$ is the number of connected components of $E(\mathbb{R})$,
-  `WeierstrassCurve.nrRealComponents`.
+  $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$.
 * *From the invariant differential.* `WeierstrassCurve.leastRealPeriodIntegral` is
   $2 \int_{e_1}^{\infty} dx / \sqrt{4x^3 + b_2 x^2 + 2 b_4 x + b_6}$, the integral of $|\omega|$
-  over the identity component of $E(\mathbb{R})$, and the real period
-  `WeierstrassCurve.realPeriodIntegral` is $2 \int_{\mathbb{R}} dx / \sqrt{F(x)}$, the integral
-  over all of $E(\mathbb{R})$.
+  over the identity component of $E(\mathbb{R})$.
 
-This file proves that the two agree, both for the least positive real period
-(`WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`) and for the real period
-(`WeierstrassCurve.realPeriodIntegral_eq_realPeriod`). The latter needs no separate argument for
-the two signs of the discriminant: the integral definition already knows that the bounded
-component contributes as much as the identity component when $\Delta > 0$, and nothing when
-$\Delta < 0$, by `WeierstrassCurve.realPeriodIntegral_of_pos` and
-`WeierstrassCurve.realPeriodIntegral_of_neg`.
+This file proves that they agree (`WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`).
+Consequently the real period of the Birch and Swinnerton-Dyer conjecture,
+`WeierstrassCurve.realPeriodIntegral`, the integral $2 \int_{\mathbb{R}} dx / \sqrt{F(x)}$ of
+$|\omega|$ over all of $E(\mathbb{R})$, is expressed through the lattice: it is twice the least
+positive real period when $\Delta > 0$
+(`WeierstrassCurve.realPeriodIntegral_eq_two_mul_leastRealPeriod`) and equal to it when
+$\Delta < 0$ (`WeierstrassCurve.realPeriodIntegral_eq_leastRealPeriod`). The factor $2$ comes
+entirely from the integral side, which knows that the bounded component of $E(\mathbb{R})$
+contributes as much as the identity component when $\Delta > 0$ and nothing when $\Delta < 0$
+(`WeierstrassCurve.realPeriodIntegral_of_pos`, `WeierstrassCurve.realPeriodIntegral_of_neg`);
+the lattice side does not describe the components of $E(\mathbb{R})$.
 
 The bridge between the two is the substitution $x = X - b_2 / 12$, which turns the 2-division
 polynomial into the depressed cubic $4X^3 - g_2 X - g_3$ of the period lattice
@@ -148,14 +149,16 @@ theorem leastRealPeriodIntegral_eq_leastRealPeriod :
     ← W.periodPair_map_g₂_re, ← W.periodPair_map_g₃_re, hL.integral_inv_sqrt_eq_half hΩ]
   ring
 
-/-- **The two definitions of the real period agree**: the integral of $|\omega|$ over
-$E(\mathbb{R})$ is the least positive real period of the period lattice times the number of
-connected components of $E(\mathbb{R})$. -/
-theorem realPeriodIntegral_eq_realPeriod : W.realPeriodIntegral = W.realPeriod := by
-  rcases lt_or_gt_of_ne (isUnit_iff_ne_zero.mp W.isUnit_Δ) with h | h
-  · rw [W.realPeriodIntegral_of_neg h, W.leastRealPeriodIntegral_eq_leastRealPeriod,
-      W.realPeriod_of_neg h]
-  · rw [W.realPeriodIntegral_of_pos h, W.leastRealPeriodIntegral_eq_leastRealPeriod,
-      W.realPeriod_of_pos h]
+/-- **The real period through the lattice, $\Delta > 0$**: the integral of $|\omega|$ over
+$E(\mathbb{R})$ is twice the least positive real period of the period lattice. -/
+theorem realPeriodIntegral_eq_two_mul_leastRealPeriod (h : 0 < W.Δ) :
+    W.realPeriodIntegral = 2 * W.leastRealPeriod := by
+  rw [W.realPeriodIntegral_of_pos h, W.leastRealPeriodIntegral_eq_leastRealPeriod]
+
+/-- **The real period through the lattice, $\Delta < 0$**: the integral of $|\omega|$ over
+$E(\mathbb{R})$ is the least positive real period of the period lattice. -/
+theorem realPeriodIntegral_eq_leastRealPeriod (h : W.Δ < 0) :
+    W.realPeriodIntegral = W.leastRealPeriod := by
+  rw [W.realPeriodIntegral_of_neg h, W.leastRealPeriodIntegral_eq_leastRealPeriod]
 
 end WeierstrassCurve

@@ -28,7 +28,7 @@ Existing project code used (all sorry-free, built):
   `leastRealPeriodIntegral_eq_integral_depressed` (both moved here in the restructure).
 - `FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/PeriodLattice.lean`: `WeierstrassCurve.periodPair` (= `PeriodPair.ofCoeffs
   W.shortModel_discr_ne_zero` = `(PeriodPair.exists_g₂_g₃ _).choose`), `periodPair_map_isReal`,
-  `leastRealPeriod`, `realPeriod`, `PeriodPair.leastRealPeriod`, `isLeast_leastRealPeriod`.
+  `leastRealPeriod`, `PeriodPair.leastRealPeriod`, `isLeast_leastRealPeriod`.
 - `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/Conjugation.lean`: `conjugate`, `mem_conjugate_lattice`,
   `conjugateLatticeEquiv`, `IsReal`, `IsReal.conj_g₂`, `IsReal.conj_g₃`, `G_conjugate` (proof pattern).
 - `FormalConjecturesForMathlib/Analysis/SpecialFunctions/Elliptic/Weierstrass/Uniqueness.lean`: `eventually_notMem_lattice`, `weierstrassP_eq`,
@@ -72,8 +72,11 @@ it is flagged again at H8–H10 below.
 
 - **R1** `WeierstrassCurve.leastRealPeriodIntegral_eq_leastRealPeriod`
   (`FormalConjecturesForMathlib/AlgebraicGeometry/EllipticCurve/RealPeriod.lean:82`)
-- **R2** `WeierstrassCurve.realPeriodIntegral_eq_realPeriod` (`…/RealPeriodIntegral.lean:87`) — assembly:
-  both sides are `nrRealComponents * (least period)`; one `rw [realPeriodIntegral, realPeriod, R1]`.
+- **R2** `WeierstrassCurve.realPeriodIntegral_eq_two_mul_leastRealPeriod` /
+  `realPeriodIntegral_eq_leastRealPeriod` (`…/RealPeriod.lean`) — corollaries of R1 via the
+  integral side's `realPeriodIntegral_of_pos` / `_of_neg`. (Originally a single assembly
+  `realPeriodIntegral_eq_realPeriod` against `realPeriod := nrRealComponents * leastRealPeriod`;
+  `nrRealComponents` removed 2026-09-10.)
 
 ### Plain-English proof of R1 (Step 1, mirroring Pastras §1, §3.1, App. A and DLMF 23.6)
 
@@ -462,8 +465,8 @@ R8`.continuousAt`; `(L.hasDerivAt_derivWeierstrassP ht).real_of_complex.continuo
 - Attacks: statement shape single conclusion ✓; both sides are `ℝ` ✓; no hidden hypothesis beyond
   `[W.IsElliptic]` (needed for `periodPair`) ✓. SURVIVED. Size: ~12 LOC.
 
-### R2 (assembly): `realPeriodIntegral_eq_realPeriod` — `RealPeriodIntegral.lean:87` —
-`simp [realPeriodIntegral, realPeriod, W.leastRealPeriodIntegral_eq_leastRealPeriod]`. SURVIVED.
+### R2 (corollaries): `realPeriodIntegral_eq_two_mul_leastRealPeriod`, `realPeriodIntegral_eq_leastRealPeriod`
+— `RealPeriod.lean` — `rw [W.realPeriodIntegral_of_pos h, R1]` and the `_of_neg` twin. SURVIVED.
 
 ---
 
