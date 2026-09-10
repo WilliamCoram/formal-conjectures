@@ -59,31 +59,20 @@ variable (L : PeriodPair)
 $\frac12 \Lambda$, which is countable. -/
 lemma exists_forall_two_mul_add_mul_notMem_lattice (l : ℂ) :
     ∃ z₀ : ℂ, ∀ t : ℝ, 2 * (z₀ + t * l) ∉ L.lattice := by
-  set H : Set ℂ := (fun x : ℂ ↦ x / 2) '' (L.lattice : Set ℂ) with hH
-  have hHc : H.Countable := L.countable_lattice.image _
-  have hmem : ∀ z : ℂ, 2 * z ∈ L.lattice → z ∈ H := fun z hz ↦ ⟨2 * z, hz, by ring⟩
+  have hcount : {z : ℂ | 2 * z ∈ L.lattice}.Countable :=
+    L.countable_lattice.preimage (mul_right_injective₀ two_ne_zero)
   rcases eq_or_ne l 0 with rfl | hl
-  · obtain ⟨z₀, hz₀⟩ := (hHc.dense_compl ℂ).nonempty
-    exact ⟨z₀, fun t hcon ↦ hz₀ (by simpa using hmem _ hcon)⟩
-  · have hl' : (starRingEnd ℂ) l ≠ 0 := by simpa using hl
-    have hll : (starRingEnd ℂ) l * l ≠ 0 := mul_ne_zero hl' hl
-    have him : ((starRingEnd ℂ) l * l).im = 0 := by
-      simp only [Complex.mul_im, Complex.conj_re, Complex.conj_im]
-      ring
-    set φ : ℂ → ℝ := fun z ↦ ((starRingEnd ℂ) l * z).im with hφ
-    obtain ⟨c, hc⟩ := ((hHc.image φ).dense_compl ℝ).nonempty
-    set z₀ : ℂ := Complex.I * (c : ℂ) * l / ((starRingEnd ℂ) l * l) with hz₀def
-    have hkey : ∀ t : ℝ, φ (z₀ + (t : ℂ) * l) = c := by
-      intro t
-      have h1 : (starRingEnd ℂ) l * (z₀ + (t : ℂ) * l)
-          = Complex.I * (c : ℂ) + (t : ℂ) * ((starRingEnd ℂ) l * l) := by
-        rw [hz₀def]; field_simp
-      show ((starRingEnd ℂ) l * (z₀ + (t : ℂ) * l)).im = c
-      rw [h1]
-      simp only [Complex.add_im, Complex.mul_im, Complex.I_re, Complex.I_im,
-        Complex.ofReal_re, Complex.ofReal_im, him]
-      ring
-    exact ⟨z₀, fun t hcon ↦ hc ⟨z₀ + (t : ℂ) * l, hmem _ hcon, hkey t⟩⟩
+  · obtain ⟨z₀, hz₀⟩ := (hcount.dense_compl ℂ).nonempty
+    exact ⟨z₀, fun t hcon ↦ hz₀ (by simpa using hcon)⟩
+  · obtain ⟨c, hc⟩ := ((hcount.image fun z ↦ (z / l).im).dense_compl ℝ).nonempty
+    refine ⟨Complex.I * c * l, fun t hcon ↦ hc ⟨_, hcon, ?_⟩⟩
+    have : (Complex.I * c * l + t * l) / l = Complex.I * c + t := by field_simp
+    simp [this]
+
+/-- A line whose points all have doubles off the lattice lies off the lattice itself. -/
+private lemma notMem_lattice_of_two_mul_notMem {z₀ l : ℂ}
+    (h : ∀ t : ℝ, 2 * (z₀ + t * l) ∉ L.lattice) (t : ℝ) : z₀ + (t : ℂ) * l ∉ L.lattice :=
+  fun hm ↦ h t (two_mul (z₀ + (t : ℂ) * l) ▸ add_mem hm hm)
 
 /-- The loop $t \mapsto (\wp(z_0 + t\lambda), \frac12 \wp'(z_0 + t\lambda))$, $t \in [0, 1]$, on
 the curve of the lattice, for a period $\lambda$ and a line $z_0 + \mathbb{R}\lambda$ avoiding
@@ -92,8 +81,7 @@ def weierstrassLoop (z₀ l : ℂ) (h : ∀ t : ℝ, 2 * (z₀ + t * l) ∉ L.la
     Path (L.weierstrassPoint z₀) (L.weierstrassPoint z₀) where
   toFun t := L.weierstrassPoint (z₀ + t * l)
   continuous_toFun := by
-    have hz : ∀ t : ℝ, z₀ + (t : ℂ) * l ∉ L.lattice :=
-      fun t hm ↦ h t (by rw [two_mul]; exact add_mem hm hm)
+    have hz := L.notMem_lattice_of_two_mul_notMem h
     refine continuous_iff_continuousAt.2 fun t ↦ ?_
     exact ContinuousAt.comp (f := fun s : I ↦ z₀ + ((s : ℝ) : ℂ) * l) (x := t)
       (L.hasDerivAt_weierstrassPoint (hz (t : ℝ))).continuousAt (by fun_prop)
@@ -120,8 +108,7 @@ lemma weierstrassLoop_extend (t : ℝ) (ht : t ∈ I) :
 $\Lambda$ by hypothesis, followed by $(\wp, \tfrac12 \wp')$, which is analytic off $\Lambda$. -/
 lemma contDiffOn_weierstrassLoop_extend :
     ContDiffOn ℝ 1 (L.weierstrassLoop z₀ l h hl).extend I := by
-  have hz : ∀ t : ℝ, z₀ + (t : ℂ) * l ∉ L.lattice :=
-    fun t hm ↦ h t (by rw [two_mul]; exact add_mem hm hm)
+  have hz := L.notMem_lattice_of_two_mul_notMem h
   have hana : ContDiffOn ℂ 1 L.weierstrassPoint ((L.lattice : Set ℂ)ᶜ) := by
     have hud : UniqueDiffOn ℂ ((L.lattice : Set ℂ)ᶜ) :=
       L.isClosed_lattice.isOpen_compl.uniqueDiffOn
@@ -144,8 +131,7 @@ lemma range_weierstrassLoop_subset :
 differential pulls back to $\lambda \, dt$, so its integral is $\lambda$. -/
 lemma curveIntegral_weierstrassLoop :
     ∫ᶜ x in L.weierstrassLoop z₀ l h hl, L.weierstrassCurve.invariantDifferential x = l := by
-  have hz : ∀ t : ℝ, z₀ + (t : ℂ) * l ∉ L.lattice :=
-    fun t hm ↦ h t (by rw [two_mul]; exact add_mem hm hm)
+  have hz := L.notMem_lattice_of_two_mul_notMem h
   have hne : ∀ t : ℝ, ℘'[L] (z₀ + (t : ℂ) * l) ≠ 0 := fun t hcon ↦
     h t ((L.derivWeierstrassP_eq_zero_iff (hz t)).mp hcon)
   have key : Set.EqOn (fun t : ℝ ↦ L.weierstrassCurve.invariantDifferential

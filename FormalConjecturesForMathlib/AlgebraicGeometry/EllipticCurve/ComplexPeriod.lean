@@ -65,9 +65,8 @@ variable (W : WeierstrassCurve ℂ) [W.IsElliptic]
 
 /-- The curve of the period lattice of `W` is the short model of `W`. -/
 lemma periodPair_weierstrassCurve : W.periodPair.weierstrassCurve = W.shortModel := by
-  have h2 : W.periodPair.g₂ = W.c₄ / 12 := periodPair_g₂ W
-  have h3 : W.periodPair.g₃ = W.c₆ / 216 := periodPair_g₃ W
-  ext <;> simp only [PeriodPair.weierstrassCurve, WeierstrassCurve.shortModel, h2, h3] <;> ring
+  ext <;> simp only [PeriodPair.weierstrassCurve, WeierstrassCurve.shortModel,
+    periodPair_g₂ W, periodPair_g₃ W] <;> ring
 
 /-- **The period lattice as integrals is the period lattice**: the integrals of the invariant
 differential along loops on $E(\mathbb{C})$ are exactly the elements of the lattice with
@@ -80,10 +79,8 @@ theorem integralPeriodLattice_eq : W.integralPeriodLattice = (W.periodPair.latti
 loop on the curve. -/
 theorem exists_curveIntegral_eq_of_mem_lattice {l : ℂ} (hl : l ∈ W.periodPair.lattice) :
     ∃ (p : ℂ × ℂ) (γ : Path p p), ContDiffOn ℝ 1 γ.extend I ∧
-      range γ ⊆ W.affineNonTwoTorsion ∧ ∫ᶜ x in γ, W.invariantDifferential x = l := by
-  refine W.mem_integralPeriodLattice_iff.mp ?_
-  rw [W.integralPeriodLattice_eq]
-  exact hl
+      range γ ⊆ W.affineNonTwoTorsion ∧ ∫ᶜ x in γ, W.invariantDifferential x = l :=
+  W.mem_integralPeriodLattice_iff.mp (W.integralPeriodLattice_eq ▸ hl)
 
 end WeierstrassCurve
 
