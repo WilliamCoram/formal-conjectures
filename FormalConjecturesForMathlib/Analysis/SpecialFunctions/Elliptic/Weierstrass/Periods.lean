@@ -104,15 +104,20 @@ def weierstrassLoop (z₀ l : ℂ) (h : ∀ t : ℝ, 2 * (z₀ + t * l) ∉ L.la
 
 variable {z₀ l : ℂ} (h : ∀ t : ℝ, 2 * (z₀ + t * l) ∉ L.lattice) (hl : l ∈ L.lattice)
 
+/-- At time `t`, `weierstrassLoop` is the point of $E_\Lambda$ above $z_0 + t\lambda$. -/
 @[simp]
 lemma weierstrassLoop_apply (t : I) :
     L.weierstrassLoop z₀ l h hl t = L.weierstrassPoint (z₀ + t * l) :=
   rfl
 
+/-- On `I`, the extension of `weierstrassLoop` to $\mathbb{R}$ is still
+$t \mapsto (\wp(z_0 + t\lambda), \tfrac12 \wp'(z_0 + t\lambda))$. -/
 lemma weierstrassLoop_extend (t : ℝ) (ht : t ∈ I) :
     (L.weierstrassLoop z₀ l h hl).extend t = L.weierstrassPoint (z₀ + t * l) :=
   Path.extend_extends' _ ⟨t, ht⟩
 
+/-- `weierstrassLoop` is $C^1$: it is the affine map $t \mapsto z_0 + t\lambda$, which avoids
+$\Lambda$ by hypothesis, followed by $(\wp, \tfrac12 \wp')$, which is analytic off $\Lambda$. -/
 lemma contDiffOn_weierstrassLoop_extend :
     ContDiffOn ℝ 1 (L.weierstrassLoop z₀ l h hl).extend I := by
   have hz : ∀ t : ℝ, z₀ + (t : ℂ) * l ∉ L.lattice :=
@@ -128,6 +133,8 @@ lemma contDiffOn_weierstrassLoop_extend :
   refine ContDiffOn.congr ?_ (fun t ht ↦ L.weierstrassLoop_extend h hl t ht)
   exact (hana.restrict_scalars ℝ).comp hline.contDiffOn fun t _ ↦ hz t
 
+/-- `weierstrassLoop` runs inside the affine locus of points of order greater than two, where the
+invariant differential is defined. -/
 lemma range_weierstrassLoop_subset :
     range (L.weierstrassLoop z₀ l h hl) ⊆ L.weierstrassCurve.affineNonTwoTorsion := by
   rintro _ ⟨t, rfl⟩
@@ -167,6 +174,9 @@ lemma curveIntegral_weierstrassLoop :
     MeasureTheory.setIntegral_congr_fun measurableSet_Ioo key]
   simp
 
+/-- **Every lattice element is a period**: $\lambda \in \Lambda$ is the integral of the invariant
+differential along the loop $t \mapsto (\wp(z_0 + t\lambda), \tfrac12 \wp'(z_0 + t\lambda))$, for
+any base point $z_0$ keeping that loop off the two-torsion. -/
 theorem mem_integralPeriodLattice_of_mem_lattice {l : ℂ} (hl : l ∈ L.lattice) :
     l ∈ L.weierstrassCurve.integralPeriodLattice := by
   obtain ⟨z₀, hz₀⟩ := L.exists_forall_two_mul_add_mul_notMem_lattice l
@@ -176,6 +186,9 @@ theorem mem_integralPeriodLattice_of_mem_lattice {l : ℂ} (hl : l ∈ L.lattice
 
 /- ## Periods are lattice elements -/
 
+/-- **Every period is a lattice element**: a loop $\gamma$ lifts along $(\wp, \tfrac12 \wp')$ to a
+path starting at any $z_0$ over $\gamma(0)$ and ending at $z_0 + \int_\gamma \omega$; since the
+loop closes up, the two endpoints have the same $\wp$ and $\wp'$, so they differ by a period. -/
 theorem mem_lattice_of_mem_integralPeriodLattice {w : ℂ}
     (hw : w ∈ L.weierstrassCurve.integralPeriodLattice) : w ∈ L.lattice := by
   obtain ⟨p, γ, hγ, hSγ, rfl⟩ := hw
