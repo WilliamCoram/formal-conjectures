@@ -15,6 +15,7 @@ limitations under the License.
 -/
 module
 
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.InvariantDifferential
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodLattice
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.RealAxis
@@ -68,14 +69,6 @@ namespace WeierstrassCurve
 
 /- ## The depressed cubic -/
 
-/-- The substitution $x = X - b_2 / 12$ turns the 2-division polynomial into the depressed cubic
-$4X^3 - g_2 X - g_3$ with $g_2 = c_4 / 12$ and $g_3 = c_6 / 216$, the invariants of the period
-lattice. -/
-lemma eval_Ψ₂Sq_sub (W : WeierstrassCurve ℝ) (x : ℝ) :
-    W.Ψ₂Sq.eval (x - W.b₂ / 12) = 4 * x ^ 3 - W.c₄ / 12 * x - W.c₆ / 216 := by
-  simp only [Ψ₂Sq, eval_add, eval_mul, eval_pow, eval_C, eval_X, c₄, c₆, b₄]
-  ring
-
 /-- The least positive real period as an integral, in terms of the depressed cubic
 $4X^3 - g_2 X - g_3$. -/
 lemma leastRealPeriodIntegral_eq_integral_depressed (W : WeierstrassCurve ℝ) :
@@ -84,20 +77,6 @@ lemma leastRealPeriodIntegral_eq_integral_depressed (W : WeierstrassCurve ℝ) :
   rw [leastRealPeriodIntegral, ← integral_comp_add_right_Ioi]
   refine congrArg (2 * ·) (setIntegral_congr_fun measurableSet_Ioi fun x _ ↦ ?_)
   rw [realPeriodIntegrand, ← W.eval_Ψ₂Sq_sub (x + W.b₂ / 12), add_sub_cancel_right]
-
-/- ## The invariants of the period lattice -/
-
-/-- The period lattice of a Weierstrass curve has $g_2 = c_4 / 12$. -/
-lemma periodPair_g₂ (W : WeierstrassCurve ℂ) [W.IsElliptic] : W.periodPair.g₂ = W.c₄ / 12 := by
-  have h := (PeriodPair.exists_g₂_g₃ W.shortModel_discr_ne_zero).choose_spec.1
-  rw [periodPair, PeriodPair.ofCoeffs, h]
-  ring
-
-/-- The period lattice of a Weierstrass curve has $g_3 = c_6 / 216$. -/
-lemma periodPair_g₃ (W : WeierstrassCurve ℂ) [W.IsElliptic] : W.periodPair.g₃ = W.c₆ / 216 := by
-  have h := (PeriodPair.exists_g₂_g₃ W.shortModel_discr_ne_zero).choose_spec.2
-  rw [periodPair, PeriodPair.ofCoeffs, h]
-  ring
 
 variable (W : WeierstrassCurve ℝ) [W.IsElliptic]
 

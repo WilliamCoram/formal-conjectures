@@ -28,7 +28,10 @@ public import FormalConjecturesForMathlib.Algebra.Polynomial.Basic
 public import FormalConjecturesForMathlib.Algebra.Polynomial.HasseDeriv
 public import FormalConjecturesForMathlib.Algebra.Powerfree
 public import FormalConjecturesForMathlib.Algebra.QuadraticAlgebra.Instances
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.ComplexPeriod
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.DivisionPolynomial.Real
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.IntegralPeriodLattice
+public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.InvariantDifferential
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodIntegral
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.PeriodLattice
 public import FormalConjecturesForMathlib.AlgebraicGeometry.EllipticCurve.RealPeriod
@@ -46,7 +49,11 @@ public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Wei
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Eisenstein
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Existence
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.HalfPeriods
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Injective
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Lift
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Periods
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.RealAxis
+public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Surjective
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Elliptic.Weierstrass.Uniqueness
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Log.Basic
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.NthRoot
@@ -149,6 +156,9 @@ public import FormalConjecturesForMathlib.LinearAlgebra.GeneralLinearGroup
 public import FormalConjecturesForMathlib.LinearAlgebra.SpecialLinearGroup
 public import FormalConjecturesForMathlib.Logic.Equiv.Fin.Rotate
 public import FormalConjecturesForMathlib.MeasureTheory.Integral.Bochner.Set
+public import FormalConjecturesForMathlib.MeasureTheory.Integral.CurveIntegral.Map
+public import FormalConjecturesForMathlib.MeasureTheory.Integral.CurveIntegral.Periods
+public import FormalConjecturesForMathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 public import FormalConjecturesForMathlib.NumberTheory.AdditionChain
 public import FormalConjecturesForMathlib.NumberTheory.AdditiveComplement
 public import FormalConjecturesForMathlib.NumberTheory.AdditivelyComplete
@@ -191,6 +201,7 @@ public import FormalConjecturesForMathlib.SetTheory.Cardinal.Continuum
 public import FormalConjecturesForMathlib.SetTheory.Cardinal.SimpleGraph
 public import FormalConjecturesForMathlib.Tactic.Linter.Term
 public import FormalConjecturesForMathlib.Topology.AbsoluteNeighborhoodRetract
+public import FormalConjecturesForMathlib.Topology.Algebra.Field
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Group
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Order
 public import FormalConjecturesForMathlib.Topology.Algebra.InfiniteSum.Real

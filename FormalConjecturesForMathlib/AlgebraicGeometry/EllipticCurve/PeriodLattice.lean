@@ -171,6 +171,18 @@ $g_2 = \frac{c_4}{12}$ and $g_3 = \frac{c_6}{216}$. -/
 def periodPair (W : WeierstrassCurve ℂ) [W.IsElliptic] : PeriodPair :=
   PeriodPair.ofCoeffs W.shortModel_discr_ne_zero
 
+/-- The period lattice of a Weierstrass curve has $g_2 = c_4 / 12$. -/
+lemma periodPair_g₂ (W : WeierstrassCurve ℂ) [W.IsElliptic] : W.periodPair.g₂ = W.c₄ / 12 := by
+  have h := (PeriodPair.exists_g₂_g₃ W.shortModel_discr_ne_zero).choose_spec.1
+  rw [periodPair, PeriodPair.ofCoeffs, h]
+  ring
+
+/-- The period lattice of a Weierstrass curve has $g_3 = c_6 / 216$. -/
+lemma periodPair_g₃ (W : WeierstrassCurve ℂ) [W.IsElliptic] : W.periodPair.g₃ = W.c₆ / 216 := by
+  have h := (PeriodPair.exists_g₂_g₃ W.shortModel_discr_ne_zero).choose_spec.2
+  rw [periodPair, PeriodPair.ofCoeffs, h]
+  ring
+
 /-- The period lattice of a curve with real coefficients is real, since $c_4$ and $c_6$ are. -/
 theorem periodPair_map_isReal (W : WeierstrassCurve ℝ) [W.IsElliptic] :
     (W.map Complex.ofRealHom).periodPair.IsReal := by
