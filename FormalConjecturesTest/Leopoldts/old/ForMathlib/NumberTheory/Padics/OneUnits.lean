@@ -14,10 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 module
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.ExpLog
+public import FormalConjecturesTest.Leopoldts.old.ForMathlib.NumberTheory.Padics.ExpLog
 
 /-!
 # `p`-adic powers of principal units
+
+**Deprecated.** This is the version of the file used before FC#5497. It is superseded by
+`FormalConjecturesForMathlib/NumberTheory/Padics/OneUnits.lean`, which states the same library
+without `PadicExpLog` and without `[CharZero K]`; nothing imports this copy any more.
 
 Let `K` be a complete ultrametric field of characteristic zero with `‖p‖ < 1`, for instance a
 finite extension of `ℚ_p`, the field `ℂ_[p]`, or the completion of a number field at a prime

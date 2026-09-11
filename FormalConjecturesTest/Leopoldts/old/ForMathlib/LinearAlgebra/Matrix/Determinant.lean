@@ -18,10 +18,15 @@ module
 public import Mathlib.LinearAlgebra.Dimension.OrzechProperty
 public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-public import Mathlib.LinearAlgebra.Matrix.Rank
+public import FormalConjecturesTest.Leopoldts.ForMathlib.LinearAlgebra.Matrix.Rank
 
 /-!
 # Minors of a matrix whose rows sum to zero
+
+**Deprecated.** Only the totally real regulator form,
+`FormalConjecturesTest/Leopoldts/old/Regulator.lean`, uses this file. The lemma of the original
+file that the equivalence proofs use, `Matrix.rank_eq_card_iff_linearIndependent_row`, is in
+`FormalConjecturesTest/Leopoldts/ForMathlib/LinearAlgebra/Matrix/Rank.lean`.
 
 Let `A : Matrix m n R` be a matrix whose rows sum to zero, `∑ j, A i j = 0` for all `i`.
 Deleting one column `a` and identifying the remaining columns with `m` through an equivalence
@@ -119,12 +124,6 @@ theorem det_submatrix_ne_eq_or_eq_neg (A : Matrix m n R) (hA : ∀ i, ∑ j, A i
     exact neg_inj.mp h1
 
 variable {F : Type*} [Field F]
-
-omit [DecidableEq m] in
-/-- A matrix has full row rank exactly when its rows are linearly independent. -/
-theorem rank_eq_card_iff_linearIndependent_row (A : Matrix m n F) :
-    A.rank = Fintype.card m ↔ LinearIndependent F A.row := by
-  rw [linearIndependent_iff_card_eq_finrank_span, Set.finrank, ← rank_eq_finrank_span_row, eq_comm]
 
 /-- If the rows of `A : Matrix m n F` sum to zero, then the minor obtained by deleting one column
 (and identifying the remaining columns with `m`) is nonsingular if and only if `A` has full row

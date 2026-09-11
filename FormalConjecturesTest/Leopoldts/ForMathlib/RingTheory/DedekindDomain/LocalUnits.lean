@@ -16,18 +16,17 @@ limitations under the License.
 module
 
 public import Mathlib
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.Basic
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.OneUnits
-public import FormalConjecturesForMathlib.Leopoldt.RingTheory.DedekindDomain.ResidueField
+public import FormalConjecturesForMathlib.NumberTheory.Padics.OneUnits
+public import FormalConjecturesTest.Leopoldts.ForMathlib.RingTheory.DedekindDomain.ResidueField
 
 /-!
 # Local units at a prime of a number field
 
 Let `K` be a number field, `v` a prime of `𝓞 K`, `K_v` its completion and `𝓞_v` the valuation
 ring of `K_v`. This file relates the principal units `oneUnits K_v = {u : ‖u - 1‖ < 1}` of
-`FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.OneUnits` to the unit group `𝓞_vˣ`,
-and proves the facts about them that the comparison of Mihăilescu's `p`-adic closure
-`⋂ₙ ι(E) · U^{pⁿ}` with the topological closure of `E₁` in `U₁` needs.
+`FormalConjecturesForMathlib.NumberTheory.Padics.OneUnits` to the unit group `𝓞_vˣ`, and proves
+the facts about them that the comparison of Mihăilescu's `p`-adic closure `⋂ₙ ι(E) · U^{pⁿ}` with
+the topological closure of `E₁` in `U₁` needs.
 
 ## Main definitions
 
@@ -46,8 +45,8 @@ and proves the facts about them that the comparison of Mihăilescu's `p`-adic cl
 * `exists_forall_pow_pow_mem_nhds_one`: when `‖n‖ < 1`, the `nᵏ`-th powers of *all* principal
   units eventually lie in any given neighbourhood of `1` — the convergence is uniform in the
   unit, which pointwise pro-`p` convergence does not give. This rests on the contraction
-  estimate `OneUnits.norm_pow_pow_sub_one_le`, which holds in any ultrametric normed field, and
-  on the norm of `K_v` being discrete (`exists_lt_one_forall_norm_le`).
+  estimate `IsUltrametricDist.norm_pow_pow_sub_one_le`, which holds in any ultrametric normed
+  field, and on the norm of `K_v` being discrete (`exists_lt_one_forall_norm_le`).
 
 Staging area: kept in the `Leopoldt` namespace. Narrow the imports and pick final namespaces
 before upstreaming.
@@ -97,7 +96,7 @@ theorem exists_forall_norm_pow_pow_sub_one_lt {n : ℕ} (hn : ‖(n : v.adicComp
       (max_lt hc1 hn)).mul_const c
   obtain ⟨k₀, hk₀⟩ := (hten.eventually (gt_mem_nhds hε)).exists_forall_of_atTop
   exact ⟨k₀, fun k hk x hx ↦
-    (OneUnits.norm_pow_pow_sub_one_le n k hc1.le (hc _ hx)).trans_lt (hk₀ k hk)⟩
+    (IsUltrametricDist.norm_pow_pow_sub_one_le n k hc1.le (hc _ hx)).trans_lt (hk₀ k hk)⟩
 
 /-- Topological form of `exists_forall_norm_pow_pow_sub_one_lt`: for every neighbourhood `s` of
 `1` in `K_v`, the `n ^ k`-th powers of *all* principal units eventually lie in `s`. -/

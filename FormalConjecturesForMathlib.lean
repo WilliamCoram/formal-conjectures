@@ -34,6 +34,7 @@ public import FormalConjecturesForMathlib.Analysis.Equidistribution.ModOne
 public import FormalConjecturesForMathlib.Analysis.Fourier.SpectralSets
 public import FormalConjecturesForMathlib.Analysis.HasGaps
 public import FormalConjecturesForMathlib.Analysis.Matrix.Spectrum
+public import FormalConjecturesForMathlib.Analysis.Normed.Algebra.Logarithm
 public import FormalConjecturesForMathlib.Analysis.Real.Cardinality
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.AdditiveCharacter
 public import FormalConjecturesForMathlib.Analysis.SpecialFunctions.Log.Basic
@@ -132,18 +133,6 @@ public import FormalConjecturesForMathlib.Geometry.Metric
 public import FormalConjecturesForMathlib.Geometry.«2d»
 public import FormalConjecturesForMathlib.Geometry.«3d»
 public import FormalConjecturesForMathlib.Lean.Elab.InfoTree.Util
-public import FormalConjecturesForMathlib.Leopoldt.Algebra.Group.Zpow
-public import FormalConjecturesForMathlib.Leopoldt.LinearAlgebra.Dimension.FiniteIndex
-public import FormalConjecturesForMathlib.Leopoldt.LinearAlgebra.Matrix.Determinant
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.NumberField.EmbeddingsBasis
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.NumberField.PadicEmbeddings
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.NumberField.Units
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.Basic
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.ExpLog
-public import FormalConjecturesForMathlib.Leopoldt.NumberTheory.Padics.OneUnits
-public import FormalConjecturesForMathlib.Leopoldt.RingTheory.DedekindDomain.AdicCompletion
-public import FormalConjecturesForMathlib.Leopoldt.RingTheory.DedekindDomain.LocalUnits
-public import FormalConjecturesForMathlib.Leopoldt.RingTheory.DedekindDomain.ResidueField
 public import FormalConjecturesForMathlib.LinearAlgebra.AffineSpace.Simplex.Basic
 public import FormalConjecturesForMathlib.LinearAlgebra.GeneralLinearGroup
 public import FormalConjecturesForMathlib.LinearAlgebra.SpecialLinearGroup
@@ -164,7 +153,9 @@ public import FormalConjecturesForMathlib.NumberTheory.Lacunary
 public import FormalConjecturesForMathlib.NumberTheory.LegendreSymbol.Basic
 public import FormalConjecturesForMathlib.NumberTheory.NormalNumber
 public import FormalConjecturesForMathlib.NumberTheory.NumberField.FundamentalDiscriminant
+public import FormalConjecturesForMathlib.NumberTheory.NumberField.PrimesAbove
 public import FormalConjecturesForMathlib.NumberTheory.NumberField.Quadratic
+public import FormalConjecturesForMathlib.NumberTheory.Padics.OneUnits
 public import FormalConjecturesForMathlib.NumberTheory.PisotNumber
 public import FormalConjecturesForMathlib.NumberTheory.PracticalNumbers
 public import FormalConjecturesForMathlib.NumberTheory.PrimeGap

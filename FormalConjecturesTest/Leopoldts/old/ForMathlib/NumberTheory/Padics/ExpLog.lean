@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 module
+public import FormalConjecturesForMathlib.Analysis.Normed.Algebra.Logarithm
 public import Mathlib.Algebra.BigOperators.Field
 public import Mathlib.Analysis.Normed.Field.Ultra
 public import Mathlib.Analysis.Normed.Module.FiniteDimension
@@ -31,6 +32,14 @@ public import Mathlib.Topology.Algebra.InfiniteSum.Nonarchimedean
 
 /-!
 # The `p`-adic logarithm and exponential
+
+**Deprecated.** The logarithm library of the Leopoldt development before it was rebuilt on
+`NormedSpace.log`. Its series `padicLog` is `NormedSpace.log` (`NormedSpace.log_eq_padicLog`, at
+the end of this file), and
+`FormalConjecturesTest/Leopoldts/ForMathlib/NumberTheory/Padics/IwasawaLog.lean` now proves
+the analytic theory that the equivalence proofs use for `NormedSpace.log` itself, together
+with the Iwasawa logarithm as defined on the Gross–Kuz'min branch. Nothing in the main folder
+uses this file.
 
 The `p`-adic logarithm `log u = ∑ (-1)ⁿ (u - 1)^(n+1) / (n+1)` and exponential `exp w = ∑ wⁿ / n!`
 over an abstract complete ultrametric field `K` of characteristic zero with `‖p‖ < 1`, e.g. a
@@ -1678,3 +1687,21 @@ theorem PadicComplex.hasIwasawaLog_iff {x : ℂ_[p]} : HasIwasawaLog p x ↔ x �
 end PadicComplex
 
 end PadicExpLog
+
+/-- `NormedSpace.log`, vendored from mathlib#43670, is the series `PadicExpLog.padicLog` of this
+file: the two series agree term by term once the constant term of `NormedSpace.log`, which is
+`0`, is dropped. Both are `tsum`s, so no convergence is involved. -/
+theorem NormedSpace.log_eq_padicLog {𝕜 : Type*} [NontriviallyNormedField 𝕜] [CharZero 𝕜]
+    (x : 𝕜) : NormedSpace.log x = PadicExpLog.padicLog x := by
+  have hsupp : Function.support (fun n : ℕ ↦ ((-1) ^ (n + 1) / n : ℚ) • (x - 1) ^ n) ⊆
+      Set.range (· + 1) := by
+    rintro (_ | n) hn
+    · simp at hn
+    · exact ⟨n, rfl⟩
+  rw [show NormedSpace.log x = ∑' n : ℕ, ((-1) ^ (n + 1) / n : ℚ) • (x - 1) ^ n from
+      congrFun (NormedSpace.log_eq_tsum ℚ) x,
+    ← (add_left_injective 1).tsum_eq hsupp, PadicExpLog.padicLog, ← tsum_neg]
+  refine tsum_congr fun n ↦ ?_
+  rw [Algebra.smul_def, eq_ratCast, show (1 : 𝕜) - x = -(x - 1) by ring, neg_pow (x - 1)]
+  push_cast
+  ring

@@ -14,22 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjecturesUtil
-import FormalConjectures.Wikipedia.LeopoldtConjecture
-import FormalConjectures.Wikipedia.LeopoldtConjecture.Elementary
+import FormalConjecturesTest.Leopoldts.Elementary
+import FormalConjecturesTest.Leopoldts.ForMathlib.LinearAlgebra.Matrix.Rank
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.NumberField.EmbeddingsBasis
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.NumberField.PadicEmbeddings
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.Padics.Basic
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.Padics.IwasawaLog
 
 /-!
 # The `p`-adic-regulator form and the elementary form agree
 
-`Leopoldt.leopoldt_conjecture.variants.padicRegulator` says the matrix of Iwasawa logarithms
-`Leopoldt.logMatrix` has full rank $r_1 + r_2 - 1$. This file proves that equivalent to the
-elementary form (`leopoldtConjecture_iff_rank`) and to the `p`-adic-relation form
-(`forall_isPadicRelation_iff_rank`).
+`Leopoldt.leopoldt_conjecture.variants.padicRegulator` says that the matrix
+`Leopoldt.logMatrix K p ε` of $p$-adic logarithms of a family `ε` of units of maximal rank lying
+in $E_1$ has full rank $r_1 + r_2 - 1$. This file proves that equivalent to the elementary form
+`LeopoldtConjecture` (`rank_logMatrix_eq_iff`, `forall_rank_logMatrix_iff`), and so to the
+`p`-adic-relation form.
 
-One direction takes logarithms of a relation $\prod_i \varepsilon_i^{a_i} = 1$; the other
-descends a $\mathbb{C}_p$-linear relation among the rows of the log matrix to a nonzero
-$\mathbb{Z}_p$-relation among the units, using that the rows lie in the $\mathbb{Q}_p$-span of
-the conjugates of an integral basis.
+The proof goes through `iwasawaLogMatrix K p`, the matrix of Iwasawa logarithms of the
+fundamental system `fundSystem K`:
+
+* `leopoldtConjecture_iff_rank` [Nelson, Proposition 4.1]: the elementary form holds iff
+  `iwasawaLogMatrix K p` has full rank. One direction takes logarithms of a relation
+  $\prod_i \varepsilon_i^{a_i} = 1$; the other descends a $\mathbb{C}_p$-linear relation among the
+  rows to a nonzero $\mathbb{Z}_p$-relation among the units, using that the rows lie in the
+  $\mathbb{Q}_p$-span of the conjugates of an integral basis.
+* `rank_logMatrix_eq`: `logMatrix K p ε` has the rank of `iwasawaLogMatrix K p`. Every conjugate
+  of a unit of $E_1$ is a principal unit (`norm_map_sub_one_lt_one`), where `NormedSpace.log`
+  is the Iwasawa logarithm (`PadicIwasawaLog.iwasawaLog_of_norm_sub_one_lt`); and
+  $\varepsilon_i^w = \prod_j e_j^{C_{ij}}$ for an integer matrix $C$ invertible over
+  $\mathbb{Q}$, so that $w \cdot$ `logMatrix K p ε` $= C \cdot$ `iwasawaLogMatrix K p`.
+
+Both matrices use one logarithm: the Iwasawa logarithm `PadicIwasawaLog.iwasawaLog` is built on
+`NormedSpace.log`, the logarithm of the statement. The statement only needs it on principal units,
+but the comparison with the fundamental system needs it on every unit.
 -/
 
 open Filter IsDedekindDomain NumberField NumberField.Units
@@ -40,18 +57,42 @@ namespace Leopoldt
 
 variable (K : Type*) [Field K] [NumberField K] (p : ℕ) [Fact p.Prime]
 
+/- ## The matrix of Iwasawa logarithms of the fundamental system -/
+
+/--
+The matrix $(\log_p \sigma(\varepsilon_i))_{i, \sigma}$ of Iwasawa logarithms of the fundamental
+system of units $\varepsilon_1, \dots, \varepsilon_r$ of $K$, over all embeddings
+$\sigma : K \to \mathbb{C}_p$. Its rows are indexed by `Fin (rank K)` and its columns by
+`K →+* ℂ_[p]`; the entries are the classical $p$-adic logarithms by
+`iwasawaLogMatrix_apply_eq_div`.
+-/
+noncomputable def iwasawaLogMatrix : Matrix (Fin (rank K)) (K →+* ℂ_[p]) ℂ_[p] :=
+  fun i σ ↦ PadicIwasawaLog.iwasawaLog p (σ (fundSystem K i : K))
+
+/--
+The entries of `iwasawaLogMatrix` are the classical $p$-adic logarithms: for any $Q \geq 1$ with
+$\|\sigma(\varepsilon_i)^Q - 1\| < 1$,
+$\log_p \sigma(\varepsilon_i) = \log_p(\sigma(\varepsilon_i)^Q) / Q$.
+-/
+@[category API, AMS 11]
+theorem iwasawaLogMatrix_apply_eq_div (i : Fin (rank K)) (σ : K →+* ℂ_[p]) {Q : ℕ} (hQ : 0 < Q)
+    (h : ‖σ (fundSystem K i : K) ^ Q - 1‖ < 1) :
+    iwasawaLogMatrix K p i σ = NormedSpace.log (σ (fundSystem K i : K) ^ Q) / Q :=
+  PadicIwasawaLog.iwasawaLog_of_hasPrincipalUnitPow
+    PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one hQ h
+
 /--
 The Iwasawa logarithm turns a product of integer powers of units into a linear combination:
 $\log_p \sigma(\prod_i \varepsilon_i^{n_i}) = \sum_i n_i \log_p \sigma(\varepsilon_i)$.
 
 This uses that the Iwasawa logarithm is defined on all of $\mathbb{C}_p^\times$ and additive
-there (`PadicExpLog.PadicComplex.hasIwasawaLog`, `PadicExpLog.iwasawaLog_prod`).
+there (`PadicIwasawaLog.PadicComplex.hasIwasawaLog`, `PadicIwasawaLog.iwasawaLog_prod`).
 -/
 @[category API, AMS 11]
 theorem iwasawaLog_map_prod_zpow (σ : K →+* ℂ_[p]) (ε : Fin (rank K) → (𝓞 K)ˣ)
     (n : Fin (rank K) → ℤ) :
-    PadicExpLog.iwasawaLog p (σ ((∏ i, ε i ^ n i : (𝓞 K)ˣ) : K)) =
-      ∑ i, (n i : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)) := by
+    PadicIwasawaLog.iwasawaLog p (σ ((∏ i, ε i ^ n i : (𝓞 K)ˣ) : K)) =
+      ∑ i, (n i : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) := by
   have hne : ∀ i, σ (ε i : K) ≠ 0 := fun i ↦ (map_ne_zero σ).2 (coe_ne_zero _)
   have hσ : σ ((∏ i, ε i ^ n i : (𝓞 K)ˣ) : K) = ∏ i, σ (ε i : K) ^ n i := by
     have hcoe : ((∏ i, ε i ^ n i : (𝓞 K)ˣ) : K) = ∏ i, ((ε i : K) ^ n i) := by
@@ -59,11 +100,11 @@ theorem iwasawaLog_map_prod_zpow (σ : K →+* ℂ_[p]) (ε : Fin (rank K) → (
       exact Finset.prod_congr rfl fun i _ ↦ coe_units_zpow (ε i) (n i)
     rw [hcoe, map_prod]
     exact Finset.prod_congr rfl fun i _ ↦ map_zpow₀ σ _ _
-  rw [hσ, PadicExpLog.iwasawaLog_prod PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-    fun i _ ↦ (PadicExpLog.PadicComplex.hasIwasawaLog (hne i)).zpow (n i)]
+  rw [hσ, PadicIwasawaLog.iwasawaLog_prod PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+    fun i _ ↦ (PadicIwasawaLog.PadicComplex.hasIwasawaLog (hne i)).zpow (n i)]
   exact Finset.sum_congr rfl fun i _ ↦
-    PadicExpLog.iwasawaLog_zpow PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-      (PadicExpLog.PadicComplex.hasIwasawaLog (hne i)) (n i)
+    PadicIwasawaLog.iwasawaLog_zpow PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+      (PadicIwasawaLog.PadicComplex.hasIwasawaLog (hne i)) (n i)
 
 /--
 **Taking logarithms in a $p$-adic relation.** If $\prod_i \varepsilon_i^{a_i} = 1$ in every
@@ -76,13 +117,13 @@ $\prod_i \varepsilon_i^{c_{i,n}} \equiv 1 \pmod{p^M}$ for the integer approximan
 $c_{i,n}$ of $a_i$ (`eventually_dvd_of_tendsto`), hence
 $\sigma(\prod_i \varepsilon_i^{c_{i,n}}) \to 1$ (`tendsto_map_of_forall_eventually_dvd`),
 hence $\sum_i c_{i,n} \log_p \sigma(\varepsilon_i) \to 0$ by continuity of the logarithm at
-$1$ (`PadicExpLog.tendsto_iwasawaLog_of_tendsto_one`); and $c_{i,n} \to a_i$ in
+$1$ (`PadicIwasawaLog.tendsto_iwasawaLog_of_tendsto_one`); and $c_{i,n} \to a_i$ in
 $\mathbb{C}_p$ (`tendsto_appr_cast`).
 -/
 @[category API, AMS 11]
 theorem sum_iwasawaLog_eq_zero_of_isPadicRelation {ε : Fin (rank K) → (𝓞 K)ˣ}
     {a : Fin (rank K) → ℤ_[p]} (ha : IsPadicRelation K p ε a) (σ : K →+* ℂ_[p]) :
-    ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)) = 0 := by
+    ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) = 0 := by
   set x : ℕ → (𝓞 K)ˣ := fun n ↦ ∏ i, ε i ^ (a i).appr n with hx
   -- The approximants are congruent to `1` modulo every power of `p`.
   have hdvd : ∀ M : ℕ, ∀ᶠ n in atTop, (p : 𝓞 K) ^ M ∣ ((x n : 𝓞 K) - 1) := fun M ↦
@@ -98,12 +139,12 @@ theorem sum_iwasawaLog_eq_zero_of_isPadicRelation {ε : Fin (rank K) → (𝓞 K
       rw [map_sub, map_one]
     rw [hfun] at h0
     simpa using h0.add_const 1
-  have hlog : Tendsto (fun n ↦ PadicExpLog.iwasawaLog p (σ ((x n : 𝓞 K) : K))) atTop (nhds 0) :=
-    PadicExpLog.tendsto_iwasawaLog_of_tendsto_one
-      PadicExpLog.PadicComplex.norm_natCast_p_lt_one hone
+  have hlog : Tendsto (fun n ↦ PadicIwasawaLog.iwasawaLog p (σ ((x n : 𝓞 K) : K))) atTop (nhds 0) :=
+    PadicIwasawaLog.tendsto_iwasawaLog_of_tendsto_one
+      PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one hone
   -- The logarithm of the approximant is the approximating sum.
-  have heq : ∀ n, PadicExpLog.iwasawaLog p (σ ((x n : 𝓞 K) : K))
-      = ∑ i, (((a i).appr n : ℕ) : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)) := by
+  have heq : ∀ n, PadicIwasawaLog.iwasawaLog p (σ ((x n : 𝓞 K) : K))
+      = ∑ i, (((a i).appr n : ℕ) : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) := by
     intro n
     have hz : x n = ∏ i, ε i ^ (((a i).appr n : ℕ) : ℤ) := by
       rw [hx]
@@ -112,9 +153,9 @@ theorem sum_iwasawaLog_eq_zero_of_isPadicRelation {ε : Fin (rank K) → (𝓞 K
     exact Finset.sum_congr rfl fun i _ ↦ by push_cast; ring
   -- Pass to the limit in each summand.
   have hsum : Tendsto (fun n ↦ ∑ i, (((a i).appr n : ℕ) : ℂ_[p]) *
-      PadicExpLog.iwasawaLog p (σ (ε i : K))) atTop
+      PadicIwasawaLog.iwasawaLog p (σ (ε i : K))) atTop
       (nhds (∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) *
-        PadicExpLog.iwasawaLog p (σ (ε i : K)))) :=
+        PadicIwasawaLog.iwasawaLog p (σ (ε i : K)))) :=
     tendsto_finsetSum _ fun i _ ↦ (tendsto_appr_cast p (a i)).mul_const _
   refine tendsto_nhds_unique hsum ?_
   simpa only [heq] using hlog
@@ -123,35 +164,35 @@ theorem sum_iwasawaLog_eq_zero_of_isPadicRelation {ε : Fin (rank K) → (𝓞 K
 If $\varepsilon_i^N = \prod_j \varepsilon_j^{C_{ij}}$ expresses the $N$-th powers of a family
 of units in terms of the fundamental system, then
 $N \log_p \sigma(\varepsilon_i) = \sum_j C_{ij} \log_p \sigma(\varepsilon_j)$, i.e. the
-logarithm vector of $\varepsilon_i$ is the $C$-combination of the rows of `logMatrix`.
+logarithm vector of $\varepsilon_i$ is the $C$-combination of the rows of `iwasawaLogMatrix`.
 -/
 @[category API, AMS 11]
-theorem mul_iwasawaLog_map_eq_sum_logMatrix (σ : K →+* ℂ_[p]) (ε : Fin (rank K) → (𝓞 K)ˣ)
-    (C : Matrix (Fin (rank K)) (Fin (rank K)) ℤ) (N : ℕ)
+theorem mul_iwasawaLog_map_eq_sum_iwasawaLogMatrix (σ : K →+* ℂ_[p])
+    (ε : Fin (rank K) → (𝓞 K)ˣ) (C : Matrix (Fin (rank K)) (Fin (rank K)) ℤ) (N : ℕ)
     (hC : ∀ i, ε i ^ N = ∏ j, fundSystem K j ^ C i j) (i : Fin (rank K)) :
-    (N : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)) =
-      ∑ j, (C i j : ℂ_[p]) * logMatrix K p j σ := by
-  have hpow : PadicExpLog.iwasawaLog p (σ ((ε i ^ N : (𝓞 K)ˣ) : K))
-      = (N : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)) := by
+    (N : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) =
+      ∑ j, (C i j : ℂ_[p]) * iwasawaLogMatrix K p j σ := by
+  have hpow : PadicIwasawaLog.iwasawaLog p (σ ((ε i ^ N : (𝓞 K)ˣ) : K))
+      = (N : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) := by
     rw [show ((ε i ^ N : (𝓞 K)ˣ) : K) = ((ε i : K)) ^ N by push_cast; ring, map_pow,
-      PadicExpLog.iwasawaLog_pow PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-        (PadicExpLog.PadicComplex.hasIwasawaLog ((map_ne_zero σ).2 (coe_ne_zero _)))]
+      PadicIwasawaLog.iwasawaLog_pow PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+        (PadicIwasawaLog.PadicComplex.hasIwasawaLog ((map_ne_zero σ).2 (coe_ne_zero _)))]
   rw [← hpow, hC i, iwasawaLog_map_prod_zpow K p σ (fundSystem K) (C i)]
   rfl
 
 /--
 **Full rank of the logarithm matrix implies Leopoldt's conjecture** (the first half of
-[Nelson, Proposition 4.1]). If the rows of `logMatrix K p` are `ℂ_p`-linearly independent, then
-the only $p$-adic relation among a family of units of maximal rank is the trivial one.
+[Nelson, Proposition 4.1]). If the rows of `iwasawaLogMatrix K p` are `ℂ_p`-linearly independent,
+then the only $p$-adic relation among a family of units of maximal rank is the trivial one.
 
 Taking logarithms turns the relation into $\sum_i a_i \log_p \sigma(\varepsilon_i) = 0$
 (`sum_iwasawaLog_eq_zero_of_isPadicRelation`); writing
 $\varepsilon_i^N = \prod_j \varepsilon_j^{C_{ij}}$ makes this a relation among the rows of
-`logMatrix` (`mul_iwasawaLog_map_eq_sum_logMatrix`), so $aC = 0$, and $\det C \neq 0$
-(`det_ne_zero_of_isMaxRank`) forces $a = 0$.
+`iwasawaLogMatrix` (`mul_iwasawaLog_map_eq_sum_iwasawaLogMatrix`), so $aC = 0$, and
+$\det C \neq 0$ (`det_ne_zero_of_isMaxRank`) forces $a = 0$.
 -/
 @[category API, AMS 11]
-theorem eq_zero_of_isPadicRelation_of_rank (h : (logMatrix K p).rank = rank K)
+theorem eq_zero_of_isPadicRelation_of_rank (h : (iwasawaLogMatrix K p).rank = rank K)
     {ε : Fin (rank K) → (𝓞 K)ˣ} (hmax : IsMaxRank ε) {a : Fin (rank K) → ℤ_[p]}
     (ha : IsPadicRelation K p ε a) : a = 0 := by
   classical
@@ -165,9 +206,9 @@ theorem eq_zero_of_isPadicRelation_of_rank (h : (logMatrix K p).rank = rank K)
     rw [hζe i, mul_pow, hζ, one_mul, ← Finset.prod_pow]
     refine Finset.prod_congr rfl fun j _ ↦ ?_
     rw [← zpow_natCast, ← zpow_mul]
-  have hdet : C.det ≠ 0 := det_ne_zero_of_isMaxRank (isMaxRank_pow hmax hw) C hC
+  have hdet : C.det ≠ 0 := det_ne_zero_of_isMaxRank (isMaxRank_pow K hmax hw) C hC
   -- The rows of the logarithm matrix are linearly independent.
-  have hli : LinearIndependent ℂ_[p] (logMatrix K p).row :=
+  have hli : LinearIndependent ℂ_[p] (iwasawaLogMatrix K p).row :=
     (Matrix.rank_eq_card_iff_linearIndependent_row _).1 (by rw [h, Fintype.card_fin])
   -- The coefficient vector `a C` annihilates every row.
   set b : Fin (rank K) → ℂ_[p] :=
@@ -177,18 +218,19 @@ theorem eq_zero_of_isPadicRelation_of_rank (h : (logMatrix K p).rank = rank K)
     rw [Finset.sum_apply, Pi.zero_apply]
     simp only [Pi.smul_apply, smul_eq_mul]
     have hlog := sum_iwasawaLog_eq_zero_of_isPadicRelation K p ha σ
-    have hrow : ∑ j, b j * (logMatrix K p).row j σ
+    have hrow : ∑ j, b j * (iwasawaLogMatrix K p).row j σ
         = ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) *
-            ((torsionOrder K : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K))) := by
+            ((torsionOrder K : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K))) := by
       simp only [hb, Finset.sum_mul, Matrix.row]
       rw [Finset.sum_comm]
       refine Finset.sum_congr rfl fun i _ ↦ ?_
-      rw [mul_iwasawaLog_map_eq_sum_logMatrix K p σ ε C (torsionOrder K) hC i, Finset.mul_sum]
+      rw [mul_iwasawaLog_map_eq_sum_iwasawaLogMatrix K p σ ε C (torsionOrder K) hC i,
+        Finset.mul_sum]
       exact Finset.sum_congr rfl fun j _ ↦ by ring
     have hfactor : ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) *
-        ((torsionOrder K : ℂ_[p]) * PadicExpLog.iwasawaLog p (σ (ε i : K)))
+        ((torsionOrder K : ℂ_[p]) * PadicIwasawaLog.iwasawaLog p (σ (ε i : K)))
         = (torsionOrder K : ℂ_[p]) * ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) *
-            PadicExpLog.iwasawaLog p (σ (ε i : K)) := by
+            PadicIwasawaLog.iwasawaLog p (σ (ε i : K)) := by
       rw [Finset.mul_sum]
       exact Finset.sum_congr rfl fun i _ ↦ by ring
     rw [hrow, hfactor, hlog, mul_zero]
@@ -221,13 +263,13 @@ $\mathbb{Q}_p$-span of the conjugate vectors of an integral basis.
 This is what replaces the Galois-trace descent of [Nelson, (4.4)] for a general number field.
 The row is the limit of the vectors
 $\sigma \mapsto (\sigma(\varepsilon_i^{Q p^k}) - 1) / (Q p^k)$
-(`PadicExpLog.tendsto_padicLog`), each of which lies in the span
+(`PadicIwasawaLog.tendsto_log`), each of which lies in the span
 (`map_mem_span_integralBasis`), and the span is closed because it is finite-dimensional over the
 complete field $\mathbb{Q}_p$ (`Submodule.closed_of_finiteDimensional`).
 -/
 @[category API, AMS 11]
-theorem logMatrix_mem_span (i : Fin (rank K)) :
-    logMatrix K p i ∈ Submodule.span ℚ_[p]
+theorem iwasawaLogMatrix_mem_span (i : Fin (rank K)) :
+    iwasawaLogMatrix K p i ∈ Submodule.span ℚ_[p]
       (Set.range fun k ↦ fun σ : K →+* ℂ_[p] ↦ σ (integralBasis K k)) := by
   classical
   set V := Submodule.span ℚ_[p]
@@ -240,7 +282,6 @@ theorem logMatrix_mem_span (i : Fin (rank K)) :
   have hQpos : 0 < Q := Nat.pos_of_ne_zero hQ0
   have hunit : ∀ σ : K →+* ℂ_[p], ‖σ (fundSystem K i : K) ^ Q - 1‖ < 1 := by
     intro σ
-    obtain ⟨Q', hQ'pos, hQ'⟩ := hasPrincipalUnitPow_map K p σ (fundSystem K i)
     obtain ⟨c, hc⟩ := hQ (fundSystem K i)
     have h1 : σ (fundSystem K i : K) ^ Q - 1 = ((p : ℕ) : ℂ_[p]) * σ (c : K) := by
       have := congrArg (fun x : 𝓞 K ↦ σ (x : K)) hc
@@ -249,12 +290,12 @@ theorem logMatrix_mem_span (i : Fin (rank K)) :
     rw [h1, norm_mul]
     calc ‖((p : ℕ) : ℂ_[p])‖ * ‖σ (c : K)‖ ≤ ‖((p : ℕ) : ℂ_[p])‖ * 1 := by
           gcongr
-          exact PadicExpLog.PadicComplex.norm_le_one_of_isIntegral
+          exact PadicIwasawaLog.PadicComplex.norm_le_one_of_isIntegral
             ((RingOfIntegers.isIntegral_coe c).map_of_comp_eq (RingHom.id ℤ) σ
               (RingHom.ext_int _ _))
       _ < 1 := by
           rw [mul_one]
-          exact PadicExpLog.PadicComplex.norm_natCast_p_lt_one
+          exact PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
   -- The approximating vectors lie in `V`.
   have hterm : ∀ k : ℕ, (fun σ : K →+* ℂ_[p] ↦
       ((σ (fundSystem K i : K) ^ Q) ^ p ^ k - 1) / ((p : ℕ) : ℂ_[p]) ^ k / (Q : ℂ_[p])) ∈ V := by
@@ -272,10 +313,10 @@ theorem logMatrix_mem_span (i : Fin (rank K)) :
   -- The row is the limit of those vectors.
   have hlim : Tendsto (fun k : ℕ ↦ (fun σ : K →+* ℂ_[p] ↦
       ((σ (fundSystem K i : K) ^ Q) ^ p ^ k - 1) / ((p : ℕ) : ℂ_[p]) ^ k / (Q : ℂ_[p])))
-      atTop (nhds (logMatrix K p i)) := by
+      atTop (nhds (iwasawaLogMatrix K p i)) := by
     refine tendsto_pi_nhds.2 fun σ ↦ ?_
-    rw [logMatrix_apply_eq_div K p i σ hQpos (hunit σ)]
-    exact (PadicExpLog.tendsto_padicLog PadicExpLog.PadicComplex.norm_natCast_p_lt_one
+    rw [iwasawaLogMatrix_apply_eq_div K p i σ hQpos (hunit σ)]
+    exact (PadicIwasawaLog.tendsto_log PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
       (hunit σ)).div_const _
   exact hclosed.mem_of_tendsto hlim (Filter.Eventually.of_forall hterm)
 
@@ -284,7 +325,7 @@ theorem logMatrix_mem_span (i : Fin (rank K)) :
 (the descent step of [Nelson, Proposition 4.1]).
 
 The rows lie in the `ℚ_p`-span of the conjugate vectors of an integral basis
-(`logMatrix_mem_span`), and those vectors are `ℂ_p`-linearly independent
+(`iwasawaLogMatrix_mem_span`), and those vectors are `ℂ_p`-linearly independent
 (`NumberField.linearIndependent_embeddings_of_basis`), so a `ℂ_p`-relation among the rows is a
 `ℂ_p`-relation among their `ℚ_p`-coordinate vectors, hence a `ℚ_p`-relation
 (`linearIndependent_algebraMap_comp_iff`). Clearing denominators
@@ -292,19 +333,19 @@ The rows lie in the `ℚ_p`-span of the conjugate vectors of an integral basis
 replaces the decomposition-group trace of [Nelson, (4.4)], which needs `K/ℚ` Galois.
 -/
 @[category API, AMS 11]
-theorem exists_ne_zero_sum_logMatrix_eq_zero
-    (h : ¬ LinearIndependent ℂ_[p] (logMatrix K p).row) :
-    ∃ a : Fin (rank K) → ℤ_[p], a ≠ 0 ∧
-      ∀ σ : K →+* ℂ_[p], ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * logMatrix K p i σ = 0 := by
+theorem exists_ne_zero_sum_iwasawaLogMatrix_eq_zero
+    (h : ¬ LinearIndependent ℂ_[p] (iwasawaLogMatrix K p).row) :
+    ∃ a : Fin (rank K) → ℤ_[p], a ≠ 0 ∧ ∀ σ : K →+* ℂ_[p],
+      ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * iwasawaLogMatrix K p i σ = 0 := by
   classical
   set w : Module.Free.ChooseBasisIndex ℤ (𝓞 K) → ((K →+* ℂ_[p]) → ℂ_[p]) :=
     fun k ↦ fun σ ↦ σ (integralBasis K k) with hw
   have hwli : LinearIndependent ℂ_[p] w :=
     NumberField.linearIndependent_embeddings_of_basis (E := ℂ_[p]) (integralBasis K)
   choose B hB using fun i ↦ (Submodule.mem_span_range_iff_exists_fun ℚ_[p]).1
-    (logMatrix_mem_span K p i)
+    (iwasawaLogMatrix_mem_span K p i)
   have hBσ : ∀ (i : Fin (rank K)) (σ : K →+* ℂ_[p]),
-      logMatrix K p i σ = ∑ k, algebraMap ℚ_[p] ℂ_[p] (B i k) * w k σ := by
+      iwasawaLogMatrix K p i σ = ∑ k, algebraMap ℚ_[p] ℂ_[p] (B i k) * w k σ := by
     intro i σ
     rw [← hB i, Finset.sum_apply]
     exact Finset.sum_congr rfl fun k _ ↦ by rw [Pi.smul_apply, Algebra.smul_def]
@@ -316,7 +357,7 @@ theorem exists_ne_zero_sum_logMatrix_eq_zero
     have hzero : ∑ k, (∑ i, c i * algebraMap ℚ_[p] ℂ_[p] (B i k)) • w k = 0 := by
       funext σ
       rw [Finset.sum_apply, Pi.zero_apply]
-      have hcσ : ∑ i, c i * logMatrix K p i σ = 0 := by
+      have hcσ : ∑ i, c i * iwasawaLogMatrix K p i σ = 0 := by
         have hcc := congrFun hc σ
         simpa [Finset.sum_apply, Matrix.row] using hcc
       rw [← hcσ]
@@ -343,16 +384,16 @@ theorem exists_ne_zero_sum_logMatrix_eq_zero
   · have hdk : ∀ k, ∑ i, d i * B i k = 0 := fun k ↦ by
       have hdd := congrFun hd k
       simpa [Finset.sum_apply, Pi.smul_apply, smul_eq_mul] using hdd
-    have hrel : ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * logMatrix K p i σ = 0 := by
-      have hexp : ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * logMatrix K p i σ
+    have hrel : ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * iwasawaLogMatrix K p i σ = 0 := by
+      have hexp : ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * iwasawaLogMatrix K p i σ
           = ∑ k, algebraMap ℚ_[p] ℂ_[p] (∑ i, d i * B i k) * w k σ := by
         simp only [map_sum, map_mul, hBσ, Finset.mul_sum, Finset.sum_mul, mul_assoc]
         exact Finset.sum_comm
       rw [hexp]
       simp [hdk]
-    calc ∑ i, algebraMap ℚ_[p] ℂ_[p] ((a i : ℤ_[p]) : ℚ_[p]) * logMatrix K p i σ
+    calc ∑ i, algebraMap ℚ_[p] ℂ_[p] ((a i : ℤ_[p]) : ℚ_[p]) * iwasawaLogMatrix K p i σ
         = algebraMap ℚ_[p] ℂ_[p] (algebraMap ℤ_[p] ℚ_[p] (m : ℤ_[p])) *
-            ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * logMatrix K p i σ := by
+            ∑ i, algebraMap ℚ_[p] ℂ_[p] (d i) * iwasawaLogMatrix K p i σ := by
           rw [Finset.mul_sum]
           refine Finset.sum_congr rfl fun i _ ↦ ?_
           rw [show ((a i : ℤ_[p]) : ℚ_[p]) = algebraMap ℤ_[p] ℚ_[p] (a i) from rfl, ha i,
@@ -365,7 +406,7 @@ theorem exists_ne_zero_sum_logMatrix_eq_zero
 
 Choose `Q` with $p^2 \mid \varepsilon_i^Q - 1$, so that every $\sigma(\varepsilon_i^Q)$ lies in
 the disc $\|u - 1\|^{p-1} < \|p\|$ where $\log_p$ is an isometry
-(`PadicExpLog.norm_padicLog_eq'`, valid for every prime, `p = 2` included). For
+(`PadicIwasawaLog.norm_log_eq`, valid for every prime, `p = 2` included). For
 $x_m = \prod_i \varepsilon_i^{Q c_{i,m}}$ with $c_{i,m}$ the approximants of $a_i$, the relation
 gives $\log_p \sigma(x_m) = \sum_i (c_{i,m} - a_i) \log_p \sigma(\varepsilon_i^Q)$, of norm at
 most $p^{-m}$ times a constant, so $\|\sigma(x_m) - 1\| \to 0$.
@@ -373,7 +414,7 @@ most $p^{-m}$ times a constant, so $\|\sigma(x_m) - 1\| \to 0$.
 @[category API, AMS 11]
 theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
     (hrel : ∀ σ : K →+* ℂ_[p],
-      ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * logMatrix K p i σ = 0)
+      ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * iwasawaLogMatrix K p i σ = 0)
     {Q : ℕ}
     (hQ : ∀ i, (p : 𝓞 K) ^ 2 ∣ ((fundSystem K i ^ Q : (𝓞 K)ˣ) : 𝓞 K) - 1)
     (σ : K →+* ℂ_[p]) :
@@ -383,7 +424,7 @@ theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
   have hppos : (0 : ℝ) < ‖((p : ℕ) : ℂ_[p])‖ := by
     have : ((p : ℕ) : ℂ_[p]) ≠ 0 := Nat.cast_ne_zero.2 (Fact.out : p.Prime).ne_zero
     exact norm_pos_iff.2 this
-  have hplt : ‖((p : ℕ) : ℂ_[p])‖ < 1 := PadicExpLog.PadicComplex.norm_natCast_p_lt_one
+  have hplt : ‖((p : ℕ) : ℂ_[p])‖ < 1 := PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
   -- Each `σ (ε_i ^ Q)` is a `1`-unit, in fact within `‖p‖ ^ 2` of `1`.
   set η : Fin (rank K) → ℂ_[p] := fun i ↦ σ (fundSystem K i : K) ^ Q with hη
   have hηsub : ∀ i, ‖η i - 1‖ ≤ ‖((p : ℕ) : ℂ_[p])‖ ^ 2 := by
@@ -395,7 +436,7 @@ theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
         RingOfIntegers.coe_eq_algebraMap] using this
     rw [h1, norm_mul, norm_pow]
     refine mul_le_of_le_one_right (by positivity) ?_
-    exact PadicExpLog.PadicComplex.norm_le_one_of_isIntegral
+    exact PadicIwasawaLog.PadicComplex.norm_le_one_of_isIntegral
       ((RingOfIntegers.isIntegral_coe c).map_of_comp_eq (RingHom.id ℤ) σ (RingHom.ext_int _ _))
   have hdisc : ∀ i, ‖η i - 1‖ ^ (p - 1) < ‖((p : ℕ) : ℂ_[p])‖ := by
     intro i
@@ -411,7 +452,7 @@ theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
   have hηne : ∀ i, η i ≠ 0 := fun i ↦
     pow_ne_zero _ ((map_ne_zero σ).2 (coe_ne_zero _))
   have hηnorm : ∀ i, ‖η i‖ ≤ 1 := fun i ↦
-    le_of_eq (PadicExpLog.norm_eq_one_of_norm_sub_one_lt_one
+    le_of_eq (IsUltrametricDist.norm_eq_one_of_norm_sub_one_lt_one
       ((hηsub i).trans_lt (by nlinarith)))
   -- The approximants.
   set x : ℕ → ℂ_[p] := fun m ↦ ∏ i, η i ^ (a i).appr m with hx
@@ -424,10 +465,10 @@ theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
   have hxsub : ∀ m, ‖x m - 1‖ ≤ ‖((p : ℕ) : ℂ_[p])‖ ^ 2 := by
     intro m
     simp only [hx]
-    refine PadicExpLog.norm_prod_sub_one_le (by positivity) (fun i _ ↦ ?_) (fun i _ ↦ ?_)
+    refine PadicIwasawaLog.norm_prod_sub_one_le (by positivity) (fun i _ ↦ ?_) (fun i _ ↦ ?_)
     · rw [norm_pow]
       exact pow_le_one₀ (norm_nonneg _) (hηnorm i)
-    · exact (PadicExpLog.norm_pow_sub_one_le (hηnorm i) _).trans (hηsub i)
+    · exact (IsUltrametricDist.norm_pow_sub_one_le (hηnorm i) _).trans (hηsub i)
   have hxdisc : ∀ m, ‖x m - 1‖ ^ (p - 1) < ‖((p : ℕ) : ℂ_[p])‖ := by
     intro m
     have hp2 : 2 ≤ p := (Fact.out : p.Prime).two_le
@@ -440,44 +481,46 @@ theorem tendsto_map_prod_pow_appr {a : Fin (rank K) → ℤ_[p]}
           rw [pow_one, sq]
           exact mul_lt_of_lt_one_left hppos hplt
   -- The logarithm of the approximant, rewritten through the relation.
-  have hηlog : ∀ i, PadicExpLog.iwasawaLog p (η i) = (Q : ℂ_[p]) * logMatrix K p i σ := by
+  have hηlog : ∀ i,
+      PadicIwasawaLog.iwasawaLog p (η i) = (Q : ℂ_[p]) * iwasawaLogMatrix K p i σ := by
     intro i
-    rw [hη, PadicExpLog.iwasawaLog_pow PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-      (PadicExpLog.PadicComplex.hasIwasawaLog ((map_ne_zero σ).2 (coe_ne_zero _)))]
+    rw [hη, PadicIwasawaLog.iwasawaLog_pow PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+      (PadicIwasawaLog.PadicComplex.hasIwasawaLog ((map_ne_zero σ).2 (coe_ne_zero _)))]
     rfl
-  have hlogx : ∀ m, PadicExpLog.iwasawaLog p (x m)
+  have hlogx : ∀ m, PadicIwasawaLog.iwasawaLog p (x m)
       = ∑ i, ((((a i).appr m : ℕ) : ℂ_[p]) - algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p])) *
-          ((Q : ℂ_[p]) * logMatrix K p i σ) := by
+          ((Q : ℂ_[p]) * iwasawaLogMatrix K p i σ) := by
     intro m
-    have hprod : PadicExpLog.iwasawaLog p (x m)
-        = ∑ i, (((a i).appr m : ℕ) : ℂ_[p]) * ((Q : ℂ_[p]) * logMatrix K p i σ) := by
+    have hprod : PadicIwasawaLog.iwasawaLog p (x m)
+        = ∑ i, (((a i).appr m : ℕ) : ℂ_[p]) * ((Q : ℂ_[p]) * iwasawaLogMatrix K p i σ) := by
       simp only [hx]
-      rw [PadicExpLog.iwasawaLog_prod (f := fun i ↦ η i ^ (a i).appr m)
-        PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-        fun i _ ↦ (PadicExpLog.PadicComplex.hasIwasawaLog (hηne i)).pow _]
+      rw [PadicIwasawaLog.iwasawaLog_prod (f := fun i ↦ η i ^ (a i).appr m)
+        PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+        fun i _ ↦ (PadicIwasawaLog.PadicComplex.hasIwasawaLog (hηne i)).pow _]
       refine Finset.sum_congr rfl fun i _ ↦ ?_
-      rw [PadicExpLog.iwasawaLog_pow PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-        (PadicExpLog.PadicComplex.hasIwasawaLog (hηne i)), hηlog i]
+      rw [PadicIwasawaLog.iwasawaLog_pow PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+        (PadicIwasawaLog.PadicComplex.hasIwasawaLog (hηne i)), hηlog i]
     rw [hprod]
-    have hzero : ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * ((Q : ℂ_[p]) * logMatrix K p i σ)
-        = 0 := by
+    have hzero : ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) *
+        ((Q : ℂ_[p]) * iwasawaLogMatrix K p i σ) = 0 := by
       have := hrel σ
-      calc ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * ((Q : ℂ_[p]) * logMatrix K p i σ)
-          = (Q : ℂ_[p]) * ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * logMatrix K p i σ := by
+      calc ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * ((Q : ℂ_[p]) * iwasawaLogMatrix K p i σ)
+          = (Q : ℂ_[p]) * ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * iwasawaLogMatrix K p i σ := by
             rw [Finset.mul_sum]
             exact Finset.sum_congr rfl fun i _ ↦ by ring
         _ = 0 := by rw [this, mul_zero]
-    rw [← sub_zero (∑ i, (((a i).appr m : ℕ) : ℂ_[p]) * ((Q : ℂ_[p]) * logMatrix K p i σ)),
+    rw [← sub_zero (∑ i, (((a i).appr m : ℕ) : ℂ_[p]) * ((Q : ℂ_[p]) * iwasawaLogMatrix K p i σ)),
       ← hzero, ← Finset.sum_sub_distrib]
     exact Finset.sum_congr rfl fun i _ ↦ by ring
   -- Bound the logarithm, hence the distance to `1`, by `p ^ (-m)` times a constant.
-  set C : ℝ := ∑ i, ‖(Q : ℂ_[p]) * logMatrix K p i σ‖ with hC
+  set C : ℝ := ∑ i, ‖(Q : ℂ_[p]) * iwasawaLogMatrix K p i σ‖ with hC
   have hbound : ∀ m, ‖x m - 1‖ ≤ ((p : ℝ)⁻¹) ^ m * C := by
     intro m
-    rw [← PadicExpLog.norm_padicLog_eq' PadicExpLog.PadicComplex.norm_natCast_p_lt_one (hxdisc m),
-      ← PadicExpLog.iwasawaLog_of_norm_sub_one_lt PadicExpLog.PadicComplex.norm_natCast_p_lt_one
-        (PadicExpLog.norm_sub_one_lt_one_of_pow_lt
-          PadicExpLog.PadicComplex.norm_natCast_p_lt_one (hxdisc m)),
+    rw [← PadicIwasawaLog.norm_log_eq PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one (hxdisc m),
+      ← PadicIwasawaLog.iwasawaLog_of_norm_sub_one_lt
+        PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+        (PadicIwasawaLog.norm_sub_one_lt_one_of_pow_lt
+          PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one (hxdisc m)),
       hlogx m, hC, Finset.mul_sum]
     refine (norm_sum_le _ _).trans (Finset.sum_le_sum fun i _ ↦ ?_)
     rw [norm_mul]
@@ -567,7 +610,7 @@ every power of $p$ (`eventually_pow_dvd_of_tendsto_map`), which contradicts the 
 @[category API, AMS 11]
 theorem not_leopoldtConjecture_of_exists_relation {a : Fin (rank K) → ℤ_[p]} (ha : a ≠ 0)
     (hrel : ∀ σ : K →+* ℂ_[p],
-      ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * logMatrix K p i σ = 0) :
+      ∑ i, algebraMap ℚ_[p] ℂ_[p] (a i : ℚ_[p]) * iwasawaLogMatrix K p i σ = 0) :
     ¬ LeopoldtConjecture K p := by
   classical
   obtain ⟨Q₀, hQ₀, hQ₀'⟩ := exists_pow_sub_one_dvd (K := K) (p := p)
@@ -594,43 +637,117 @@ theorem not_leopoldtConjecture_of_exists_relation {a : Fin (rank K) → ℤ_[p]}
 
 /--
 **The equivalence of the two forms of Leopoldt's conjecture** [Nelson, Proposition 4.1]: the
-elementary congruence form `LeopoldtConjecture` holds if and only if the matrix of $p$-adic
-logarithms of a fundamental system of units has full rank $r_1 + r_2 - 1$.
+elementary congruence form `LeopoldtConjecture` holds if and only if the matrix
+`iwasawaLogMatrix K p` of $p$-adic logarithms of a fundamental system of units has full rank
+$r_1 + r_2 - 1$.
 
 The forward direction is by contraposition: if the rank is not full, the rows are
 `ℂ_p`-dependent (`Matrix.rank_eq_card_iff_linearIndependent_row`), that dependence descends to a
-nonzero `ℤ_p`-relation (`exists_ne_zero_sum_logMatrix_eq_zero`), and such a relation contradicts
-the conjecture (`not_leopoldtConjecture_of_exists_relation`). The converse is
+nonzero `ℤ_p`-relation (`exists_ne_zero_sum_iwasawaLogMatrix_eq_zero`), and such a relation
+contradicts the conjecture (`not_leopoldtConjecture_of_exists_relation`). The converse is
 `eq_zero_of_isPadicRelation_of_rank` fed into `leopoldtConjecture_of_forall_isPadicRelation`.
 -/
 @[category API, AMS 11]
 theorem leopoldtConjecture_iff_rank :
-    LeopoldtConjecture K p ↔ (logMatrix K p).rank = rank K := by
+    LeopoldtConjecture K p ↔ (iwasawaLogMatrix K p).rank = rank K := by
   refine ⟨fun h ↦ ?_, fun h ↦ leopoldtConjecture_of_forall_isPadicRelation
     fun ε hmax _ a ha ↦ eq_zero_of_isPadicRelation_of_rank K p h hmax ha⟩
   by_contra hrank
-  have hli : ¬ LinearIndependent ℂ_[p] (logMatrix K p).row := fun hli ↦
+  have hli : ¬ LinearIndependent ℂ_[p] (iwasawaLogMatrix K p).row := fun hli ↦
     hrank (by simpa using (Matrix.rank_eq_card_iff_linearIndependent_row _).2 hli)
-  obtain ⟨a, hane, hrel⟩ := exists_ne_zero_sum_logMatrix_eq_zero K p hli
+  obtain ⟨a, hane, hrel⟩ := exists_ne_zero_sum_iwasawaLogMatrix_eq_zero K p hli
   exact not_leopoldtConjecture_of_exists_relation K p hane hrel h
 
+/- ## The matrix `logMatrix K p ε` of the statement
+
+`leopoldt_conjecture.variants.padicRegulator` is stated with `logMatrix K p ε`, the matrix of the
+series logarithm `NormedSpace.log` at a family `ε` of units of maximal rank lying in $E_1$. -/
+
+/-- A unit of $E_1$ is a principal unit at every embedding $\sigma : K \to \mathbb{C}_p$:
+$u - 1$ lies in every prime above $p$, hence in the radical of $p \mathcal{O}_K$, so
+$(u - 1)^n = p c$ for some $n$ and some $c \in \mathcal{O}_K$, and $\|\sigma(c)\| \le 1$. -/
+@[category API, AMS 11]
+theorem norm_map_sub_one_lt_one {u : (𝓞 K)ˣ} (hu : IsPrincipalUnitAbove K p u)
+    (σ : K →+* ℂ_[p]) : ‖σ (u : K) - 1‖ < 1 := by
+  have hp0 : (p : 𝓞 K) ≠ 0 := Nat.cast_ne_zero.2 (Fact.out : p.Prime).ne_zero
+  obtain ⟨n, hn⟩ : (u : 𝓞 K) - 1 ∈ (Ideal.span {(p : 𝓞 K)}).radical := by
+    rw [Ideal.radical_eq_sInf, Submodule.mem_sInf]
+    rintro J ⟨hpJ, hJ⟩
+    have hpJ' : (p : 𝓞 K) ∈ J := hpJ (Ideal.mem_span_singleton_self _)
+    exact hu ⟨J, hJ, fun h ↦ hp0 (by rwa [h, Ideal.mem_bot] at hpJ')⟩ hpJ'
+  obtain ⟨c, hc⟩ := Ideal.mem_span_singleton.1 hn
+  have hσ : (σ (u : K) - 1) ^ n = ((p : ℕ) : ℂ_[p]) * σ (c : K) := by
+    have := congrArg (fun x : 𝓞 K ↦ σ (x : K)) hc
+    simpa only [map_sub, map_mul, map_pow, map_natCast, map_one,
+      RingOfIntegers.coe_eq_algebraMap] using this
+  have hc1 : ‖σ (c : K)‖ ≤ 1 :=
+    PadicIwasawaLog.PadicComplex.norm_le_one_of_isIntegral
+      ((RingOfIntegers.isIntegral_coe c).map_of_comp_eq (RingHom.id ℤ) σ (RingHom.ext_int _ _))
+  have hp1 : ‖((p : ℕ) : ℂ_[p])‖ < 1 := PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one
+  by_contra h
+  have h1 : 1 ≤ ‖σ (u : K) - 1‖ ^ n := one_le_pow₀ (not_lt.1 h)
+  rw [← norm_pow, hσ, norm_mul] at h1
+  nlinarith [mul_le_mul_of_nonneg_left hc1 (norm_nonneg ((p : ℕ) : ℂ_[p]))]
+
 /--
-The hypotheses of `leopoldt_conjecture` (the `IsPadicRelation` form) are equivalent to
-`leopoldt_conjecture.variants.padicRegulator` (the rank form).
+**`logMatrix K p ε` has the rank of the Iwasawa-logarithm matrix of the fundamental system.**
+Write $\varepsilon_i^w = \prod_j e_j^{C_{ij}}$, with $w$ the number of roots of unity in $K$ and
+$C$ an integer matrix, invertible over $\mathbb{Q}$ since `ε` has maximal rank
+(`det_ne_zero_of_isMaxRank`). On the principal units $\sigma(\varepsilon_i)$
+(`norm_map_sub_one_lt_one`) `NormedSpace.log` is the Iwasawa logarithm, which turns this into
+$w \cdot$ `logMatrix K p ε` $= C \cdot$ `iwasawaLogMatrix K p`.
 -/
 @[category API, AMS 11]
-theorem forall_isPadicRelation_iff_rank :
+theorem rank_logMatrix_eq {ε : Fin (rank K) → (𝓞 K)ˣ} (hmax : IsMaxRank ε)
+    (hone : ∀ i, IsPrincipalUnitAbove K p (ε i)) :
+    (logMatrix K p ε).rank = (iwasawaLogMatrix K p).rank := by
+  classical
+  have hw : torsionOrder K ≠ 0 := torsionOrder_ne_zero K
+  choose ζe hζe using fun i ↦ (exist_unique_eq_mul_prod K (ε i)).exists
+  set C : Matrix (Fin (rank K)) (Fin (rank K)) ℤ := fun i j ↦ (ζe i).2 j * torsionOrder K
+  have hC : ∀ i, ε i ^ torsionOrder K = ∏ j, fundSystem K j ^ C i j := by
+    intro i
+    have hζ : ((ζe i).1 : (𝓞 K)ˣ) ^ torsionOrder K = 1 :=
+      (mem_rootsOfUnity _ _).1 (by rw [rootsOfUnity_eq_torsion]; exact (ζe i).1.2)
+    rw [hζe i, mul_pow, hζ, one_mul, ← Finset.prod_pow]
+    refine Finset.prod_congr rfl fun j _ ↦ ?_
+    rw [← zpow_natCast, ← zpow_mul]
+  have hdet : ((Int.castRingHom ℂ_[p]).mapMatrix C).det ≠ 0 := by
+    rw [← RingHom.map_det, eq_intCast, Int.cast_ne_zero]
+    exact det_ne_zero_of_isMaxRank (isMaxRank_pow K hmax hw) C hC
+  have hmat : (torsionOrder K : ℂ_[p]) • logMatrix K p ε =
+      (Int.castRingHom ℂ_[p]).mapMatrix C * iwasawaLogMatrix K p := by
+    ext i σ
+    show (torsionOrder K : ℂ_[p]) * NormedSpace.log (σ (ε i : K)) =
+      ∑ j, (C i j : ℂ_[p]) * iwasawaLogMatrix K p j σ
+    rw [← PadicIwasawaLog.iwasawaLog_of_norm_sub_one_lt
+      PadicIwasawaLog.PadicComplex.norm_natCast_p_lt_one (norm_map_sub_one_lt_one K p (hone i) σ)]
+    exact mul_iwasawaLog_map_eq_sum_iwasawaLogMatrix K p σ ε C _ hC i
+  have hw' : ((torsionOrder K : ℂ_[p]) •
+      (1 : Matrix (Fin (rank K)) (Fin (rank K)) ℂ_[p])).det ≠ 0 := by
+    rw [Matrix.det_smul, Matrix.det_one, mul_one]
+    exact pow_ne_zero _ (Nat.cast_ne_zero.2 hw)
+  rw [← Matrix.rank_mul_eq_right_of_det_ne_zero _ (logMatrix K p ε) hw', Matrix.smul_mul,
+    Matrix.one_mul, hmat, Matrix.rank_mul_eq_right_of_det_ne_zero _ _ hdet]
+
+/-- **The $p$-adic regulator form, for one family.** For a family `ε` of units of maximal rank
+lying in $E_1$, `logMatrix K p ε` has full rank iff the elementary form of Leopoldt's conjecture
+holds. In particular the rank does not depend on the family. -/
+@[category API, AMS 11]
+theorem rank_logMatrix_eq_iff {ε : Fin (rank K) → (𝓞 K)ˣ} (hmax : IsMaxRank ε)
+    (hone : ∀ i, IsPrincipalUnitAbove K p (ε i)) :
+    (logMatrix K p ε).rank = rank K ↔ LeopoldtConjecture K p := by
+  rw [rank_logMatrix_eq K p hmax hone, leopoldtConjecture_iff_rank]
+
+/-- **The $p$-adic regulator form and the elementary form agree**: the statement of
+`leopoldt_conjecture.variants.padicRegulator` holds iff `LeopoldtConjecture K p` does. One
+direction applies the statement to the family given by `exists_isMaxRank_isPrincipalUnitAbove`. -/
+@[category API, AMS 11]
+theorem forall_rank_logMatrix_iff :
     (∀ ε : Fin (rank K) → (𝓞 K)ˣ, IsMaxRank ε → (∀ i, IsPrincipalUnitAbove K p (ε i)) →
-        ∀ a : Fin (rank K) → ℤ_[p], IsPadicRelation K p ε a → a = 0) ↔
-      (logMatrix K p).rank = rank K :=
-  (leopoldtConjecture_iff K p).symm.trans (leopoldtConjecture_iff_rank K p)
-
-/-
-### The `p`-adic regulator of a totally real field
-
-For totally real `K` the matrix `logMatrix K p` has `r + 1` columns and its rows sum to zero, so
-deleting any one column gives an `r × r` matrix whose determinant is well defined up to sign:
-Washington's `p`-adic regulator `R_p(K)`.
--/
+      (logMatrix K p ε).rank = rank K) ↔ LeopoldtConjecture K p := by
+  refine ⟨fun h ↦ ?_, fun h ε hmax hone ↦ (rank_logMatrix_eq_iff K p hmax hone).2 h⟩
+  obtain ⟨ε, hmax, hone⟩ := exists_isMaxRank_isPrincipalUnitAbove K p
+  exact (rank_logMatrix_eq_iff K p hmax hone).1 (h ε hmax hone)
 
 end Leopoldt

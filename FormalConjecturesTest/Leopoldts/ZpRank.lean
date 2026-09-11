@@ -14,15 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjecturesUtil
 import FormalConjectures.Wikipedia.LeopoldtConjecture
+import FormalConjecturesTest.Leopoldts.ForMathlib.LinearAlgebra.Dimension.FiniteIndex
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.NumberField.Units
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.Padics.OneUnits
+import FormalConjecturesTest.Leopoldts.ForMathlib.RingTheory.DedekindDomain.AdicCompletion
 
 /-!
 # The $\mathbb{Z}_p$-rank form and the `p`-adic-relation form agree
 
-`Leopoldt.leopoldt_conjecture.variants.zpRank` is Wikipedia's statement: the
-$\mathbb{Z}_p$-rank of the closure `Leopoldt.closureE₁` of $E_1$ in $U_1$ is $r_1 + r_2 - 1$.
-This file proves it equivalent to `Leopoldt.leopoldt_conjecture` (`zpRank_iff`).
+`Leopoldt.leopoldt_conjecture` is Wikipedia's statement: the $\mathbb{Z}_p$-rank of the closure
+`Leopoldt.closureE₁` of $E_1$ in $U_1$ is $r_1 + r_2 - 1$. This file proves it equivalent to the
+statement of `Leopoldt.leopoldt_conjecture.variants.padicRelation`: `zpRank_iff` does so with
+`Module.finrank`, and `rank_closureE₁_eq_iff_finrank` shows that `Module.rank`, used in
+`leopoldt_conjecture`, gives the same statement.
 
 Fix units of maximal rank lying in $E_1$. They span a $\mathbb{Z}_p$-linear map
 $\varphi_\varepsilon : \mathbb{Z}_p^r \to U_1$ (`unitsLinearMap`) whose kernel is exactly the
@@ -35,6 +40,38 @@ open Filter IsDedekindDomain NumberField NumberField.Units Topology
 open scoped NumberField Valued
 
 namespace Leopoldt
+
+/-- `‖p‖ < 1` in $K_\mathfrak{p}$ for $\mathfrak{p} \mid p$, as the `Fact` that the
+`ℤ_[p]`-module structure `OneUnits.instModule` of a single factor $U_{1, \mathfrak{p}}$ of
+$U_1$ takes as an instance argument. It is not a global instance (library note «fact
+non-instances»): the files working with a single factor make it a local instance. -/
+@[category API, AMS 11]
+theorem fact_norm_natCast_lt_one {K : Type*} [Field K] [NumberField K] {p : ℕ}
+    (v : PrimesAbove K p) : Fact (‖((p : ℕ) : v.1.adicCompletion K)‖ < 1) :=
+  ⟨v.1.norm_natCast_lt_one v.2⟩
+
+attribute [local instance] fact_norm_natCast_lt_one
+
+section U₁
+
+variable (K : Type*) [Field K] [NumberField K] (p : ℕ) [Fact p.Prime]
+
+/-- Integer `p`-adic powers are ordinary powers, componentwise in $U_1$. -/
+@[category API, AMS 11]
+theorem U₁.natCast_smul (n : ℕ) (x : U₁ K p) : (n : ℤ_[p]) • x = n • x :=
+  funext fun v ↦ OneUnits.natCast_smul n (x v)
+
+@[category API, AMS 11]
+theorem U₁.intCast_smul (n : ℤ) (x : U₁ K p) : (n : ℤ_[p]) • x = n • x :=
+  funext fun v ↦ OneUnits.intCast_smul n (x v)
+
+/-- `a • x = lim (a.appr n) • x` in $U_1$. -/
+@[category API, AMS 11]
+theorem tendsto_appr_nsmul (a : ℤ_[p]) (x : U₁ K p) :
+    Tendsto (fun n ↦ a.appr n • x) atTop (𝓝 (a • x)) :=
+  OneUnits.tendsto_appr_nsmul_pi a x
+
+end U₁
 
 section equivalence
 
@@ -82,7 +119,7 @@ theorem tendsto_prod_pow_appr (a : Fin (rank K) → ℤ_[p]) (v : PrimesAbove K 
     rfl
   refine Tendsto.congr (fun n ↦ (hconv n).symm) ?_
   exact tendsto_finsetProd _ fun i _ ↦
-    OneUnits.tendsto_pow_appr (norm_algebraMap_sub_one_lt K p (hone i) v) (a i)
+    OneUnits.tendsto_pow_appr (v.1.norm_algebraMap_sub_one_lt (hone i v.1 v.2)) (a i)
 
 /-- `IsPadicRelation K p ε a` says exactly $\varphi_\varepsilon(a) = 0$. -/
 @[category API, AMS 11]
@@ -226,8 +263,8 @@ end equivalence
 variable (K : Type*) [Field K] [NumberField K] (p : ℕ) [Fact p.Prime]
 
 /--
-The $\mathbb{Z}_p$-rank form `leopoldt_conjecture.variants.zpRank` is equivalent to the
-formulation of `leopoldt_conjecture`: injectivity of $\varphi_\varepsilon$ for every family
+The $\mathbb{Z}_p$-rank form, with `Module.finrank`, is equivalent to the statement of
+`leopoldt_conjecture.variants.padicRelation`: injectivity of $\varphi_\varepsilon$ for every family
 $\varepsilon$ of units of maximal rank lying in $E_1$. One direction uses that such a family
 exists (`exists_isMaxRank_isPrincipalUnitAbove`); the other that the rank of $\overline{E_1}$
 does not depend on the family (`finrank_closureE₁_eq_iff`).
@@ -240,5 +277,34 @@ theorem zpRank_iff :
   refine ⟨fun h ε hmax hone ↦ (finrank_closureE₁_eq_iff ε hone hmax).1 h, fun h ↦ ?_⟩
   obtain ⟨ε, hmax, hone⟩ := exists_isMaxRank_isPrincipalUnitAbove K p
   exact (finrank_closureE₁_eq_iff ε hone hmax).2 (h ε hmax hone)
+
+/-- $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} \le r_1 + r_2 - 1$. Rank-nullity for
+$\varphi_\varepsilon : \mathbb{Z}_p^r \to U_1$, whose image has the same rank as
+$\overline{E_1}$ because it has finite index in it. -/
+@[category API, AMS 11]
+theorem rank_closureE₁_le : Module.rank ℤ_[p] (closureE₁ K p) ≤ (rank K : Cardinal) := by
+  obtain ⟨ε, hmax, hone⟩ := exists_isMaxRank_isPrincipalUnitAbove K p
+  rw [rank_closureE₁_eq ε hone hmax, ← rank_range_add_rank_ker_unitsLinearMap ε hone]
+  exact le_self_add
+
+/-- $\overline{E_1}$ has finite $\mathbb{Z}_p$-rank. -/
+@[category API, AMS 11]
+theorem rank_closureE₁_lt_aleph0 : Module.rank ℤ_[p] (closureE₁ K p) < Cardinal.aleph0 :=
+  (rank_closureE₁_le K p).trans_lt Cardinal.natCast_lt_aleph0
+
+/-- $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} \le r_1 + r_2 - 1$, as naturals. -/
+@[category API, AMS 11]
+theorem finrank_closureE₁_le_rank : Module.finrank ℤ_[p] (closureE₁ K p) ≤ rank K :=
+  Module.finrank_le_of_rank_le (rank_closureE₁_le K p)
+
+/-- Since $\overline{E_1}$ has finite rank (`rank_closureE₁_lt_aleph0`), the statement
+`leopoldt_conjecture`, written with `Module.rank`, is the same as its `Module.finrank` version. -/
+@[category API, AMS 11]
+theorem rank_closureE₁_eq_iff_finrank :
+    Module.rank ℤ_[p] (closureE₁ K p) = rank K ↔
+      Module.finrank ℤ_[p] (closureE₁ K p) = rank K := by
+  have h := Cardinal.cast_toNat_of_lt_aleph0 (rank_closureE₁_lt_aleph0 K p)
+  rw [← h]
+  exact Nat.cast_inj
 
 end Leopoldt

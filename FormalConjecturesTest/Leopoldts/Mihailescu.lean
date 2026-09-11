@@ -14,30 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -/
 
-import FormalConjecturesUtil
-import FormalConjectures.Wikipedia.LeopoldtConjecture
-import FormalConjectures.Wikipedia.LeopoldtConjecture.ZpRank
+import FormalConjecturesTest.Leopoldts.ZpRank
+import FormalConjecturesTest.Leopoldts.ForMathlib.NumberTheory.Padics.Basic
+import FormalConjecturesTest.Leopoldts.ForMathlib.RingTheory.DedekindDomain.LocalUnits
 
 /-!
 # Mihăilescu's Leopoldt defect is Wikipedia's Leopoldt defect
 
-`Leopoldt.Mihailescu.LeopoldtConjecture p K` says that the Leopoldt defect
-$\mathcal{D}_L(K) = \mathbb{Z}\text{-rk}(E) - \mathbb{Z}_p\text{-rk}(\overline{E})$ vanishes,
-where $\overline{E} = \bigcap_{n > 0} \iota(E) \cdot U^{p^n}$ is the `p`-adic closure of the
-global units in the semilocal units $U$ and the $\mathbb{Z}_p$-rank is `Mihailescu.zpRankBelow`,
-the largest $n$ such that $\mathbb{Z}_p^n$ embeds continuously into $\overline{E}$.
-`leopoldt_conjecture.variants.zpRank` says instead that
+`Leopoldt.leopoldt_conjecture.variants.mihailescu` says that the Leopoldt defect
+`Mihailescu.defect K p` $= \mathbb{Z}\text{-rk}(E) - \mathbb{Z}_p\text{-rk}(\overline{E})$
+vanishes, where $\overline{E} = \bigcap_{n > 0} \iota(E) \cdot U^{p^n}$ is the `p`-adic closure of
+the global units in the semilocal units $U$ and the $\mathbb{Z}_p$-rank is
+`Mihailescu.zpRankBelow`, the largest $n$ such that $\mathbb{Z}_p^n$ embeds continuously into
+$\overline{E}$. `Leopoldt.leopoldt_conjecture` says instead that
 $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} = r_1 + r_2 - 1$ for the closure
-`closureE₁ K p` of $E_1$ in the *principal* units $U_1$. This file proves the two equal
+`closureE₁ K p` of $E_1$ in the *principal* units $U_1$. This file proves the two ranks equal
 (`Mihailescu.zpRankBelow_unitClosure_eq`), hence the two conjectures equivalent
-(`Mihailescu.leopoldtConjecture_iff_finrank`).
+(`Mihailescu.defect_eq_zero_iff`).
 
 ## The dictionary between $U_1$ and $U$
 
 The first half of the file builds the inclusion $U_1 \subseteq U$ and the facts about it that the
 rank comparison needs.
 
-* `toSemilocalUnits K p : Multiplicative (U₁ K p) →* Mihailescu.SemilocalUnits p K` is the
+* `toSemilocalUnits K p : Multiplicative (U₁ K p) →* Mihailescu.SemilocalUnits K p` is the
   inclusion $U_1 \subseteq U$. It is injective, continuous and inducing, its range is the set of
   $u \in U$ with $u \equiv 1$ at every $\mathfrak{p} \mid p$ (`mem_range_toSemilocalUnits_iff`),
   and it matches the two diagonal embeddings of the global units (`toSemilocalUnits_ofAdd_diag`).
@@ -55,7 +55,7 @@ rank comparison needs.
 ## The rank comparison
 
 $$\mathbb{Z}_p\text{-rk}(\overline{E}) = \operatorname{rank}_{\mathbb{Z}_p} \overline{E_1},$$
-so that `Mihailescu.defect p K = rank K - Module.finrank ℤ_[p] (closureE₁ K p)`
+so that `Mihailescu.defect K p = rank K - Module.finrank ℤ_[p] (closureE₁ K p)`
 (`Mihailescu.defect_eq`).
 
 * $\le$: a continuous injection $f : \mathbb{Z}_p^n \to \overline{E}$ has $f^N$ landing in
@@ -81,10 +81,20 @@ section bridge
 
 variable (K : Type*) [Field K] [NumberField K] (p : ℕ) [Fact p.Prime]
 
+/-- There are finitely many primes above `p`. -/
+instance : Finite (PrimesAbove K p) := by
+  have hpne : (p : 𝓞 K) ≠ 0 := Nat.cast_ne_zero.2 (Fact.out (p := p.Prime)).ne_zero
+  have hp0 : Ideal.span {(p : 𝓞 K)} ≠ 0 := by
+    simpa [Ideal.span_singleton_eq_bot] using hpne
+  apply Set.Finite.to_subtype
+  refine (Ideal.finite_factors (R := 𝓞 K) hp0).subset ?_
+  intro v hv
+  exact Ideal.dvd_iff_le.2 ((Ideal.span_singleton_le_iff_mem _).2 hv)
+
 omit [Fact p.Prime] in
 /-- The inclusion $U_1 \hookrightarrow U$ of the principal units into the semilocal units, as a
 group homomorphism from the multiplicative version of the `ℤ_[p]`-module `U₁ K p`. -/
-noncomputable def toSemilocalUnits : Multiplicative (U₁ K p) →* Mihailescu.SemilocalUnits p K where
+noncomputable def toSemilocalUnits : Multiplicative (U₁ K p) →* Mihailescu.SemilocalUnits K p where
   toFun y v := toIntegerUnits v.1 (y.toAdd v).toMul
   map_one' := funext fun v ↦ map_one (toIntegerUnits v.1)
   map_mul' _ _ := funext fun v ↦ map_mul (toIntegerUnits v.1) _ _
@@ -119,12 +129,12 @@ omit [Fact p.Prime] in
 $\prod_{\mathfrak{p} \mid p} K_\mathfrak{p}$. -/
 @[category API, AMS 11]
 theorem isInducing_toSemilocalUnits : Topology.IsInducing (toSemilocalUnits K p) := by
-  have hg : Continuous fun w : Mihailescu.SemilocalUnits p K ↦
+  have hg : Continuous fun w : Mihailescu.SemilocalUnits K p ↦
       fun v : PrimesAbove K p ↦ ((w v : v.1.adicCompletionIntegers K) : v.1.adicCompletion K) :=
     continuous_pi fun v ↦
       continuous_subtype_val.comp (Units.continuous_val.comp (continuous_apply v))
   refine Topology.IsInducing.of_comp (continuous_toSemilocalUnits K p) hg ?_
-  have heq : (fun w : Mihailescu.SemilocalUnits p K ↦
+  have heq : (fun w : Mihailescu.SemilocalUnits K p ↦
       fun v : PrimesAbove K p ↦ ((w v : v.1.adicCompletionIntegers K) : v.1.adicCompletion K))
       ∘ toSemilocalUnits K p
       = Pi.map fun v : PrimesAbove K p ↦ fun z : Additive (oneUnits (v.1.adicCompletion K)) ↦
@@ -138,9 +148,9 @@ omit [Fact p.Prime] in
 /-- The image of $U_1$ in $U$: a semilocal unit is principal exactly when it is principal at
 every $\mathfrak{p} \mid p$. -/
 @[category API, AMS 11]
-theorem mem_range_toSemilocalUnits_iff (w : Mihailescu.SemilocalUnits p K) :
+theorem mem_range_toSemilocalUnits_iff (w : Mihailescu.SemilocalUnits K p) :
     w ∈ (toSemilocalUnits K p).range ↔
-      ∀ v : Mihailescu.PrimesOver p K, w v ∈ (toIntegerUnits v.1).range := by
+      ∀ v : PrimesAbove K p, w v ∈ (toIntegerUnits v.1).range := by
   rw [MonoidHom.mem_range]
   refine ⟨fun ⟨y, hy⟩ v ↦ ⟨(y.toAdd v).toMul, by rw [← hy]; rfl⟩, fun h ↦ ?_⟩
   choose u hu using h
@@ -149,10 +159,10 @@ theorem mem_range_toSemilocalUnits_iff (w : Mihailescu.SemilocalUnits p K) :
 omit [Fact p.Prime] in
 /-- The value of the diagonal embedding $E \to U$ at $\mathfrak{p}$, inside $K_\mathfrak{p}$. -/
 @[category API, AMS 11]
-theorem coe_diagonalUnits_apply (x : (𝓞 K)ˣ) (v : Mihailescu.PrimesOver p K) :
-    ((Mihailescu.diagonalUnits p K x v : v.1.adicCompletionIntegers K) : v.1.adicCompletion K)
+theorem coe_diagonalUnits_apply (x : (𝓞 K)ˣ) (v : PrimesAbove K p) :
+    ((Mihailescu.diagonalUnits K p x v : v.1.adicCompletionIntegers K) : v.1.adicCompletion K)
       = algebraMap (𝓞 K) (v.1.adicCompletion K) (x : 𝓞 K) := by
-  rw [show Mihailescu.diagonalUnits p K x v =
+  rw [show Mihailescu.diagonalUnits K p x v =
     Units.map (algebraMap (𝓞 K) (v.1.adicCompletionIntegers K)).toMonoidHom x from rfl,
     Units.coe_map]
   exact IsDedekindDomain.HeightOneSpectrum.coe_algebraMap_adicCompletionIntegers K v.1 _
@@ -163,7 +173,7 @@ $E \to U$. -/
 @[category API, AMS 11]
 theorem toSemilocalUnits_ofAdd_diag (u : Additive (E₁ K p)) :
     toSemilocalUnits K p (Multiplicative.ofAdd (diag K p u)) =
-      Mihailescu.diagonalUnits p K (u.toMul : (𝓞 K)ˣ) := by
+      Mihailescu.diagonalUnits K p (u.toMul : (𝓞 K)ˣ) := by
   funext v
   refine Units.ext (Subtype.ext ?_)
   rw [coe_toSemilocalUnits_apply, toAdd_ofAdd, coe_diag_apply]
@@ -183,12 +193,12 @@ residue-field unit group directly, via `mem_range_toIntegerUnits_iff_residue`. -
 @[category API, AMS 11]
 theorem exists_pow_mem_range_toSemilocalUnits :
     ∃ N : ℕ, N ≠ 0 ∧
-      ∀ w : Mihailescu.SemilocalUnits p K, w ^ N ∈ (toSemilocalUnits K p).range := by
-  set N := Nat.card (∀ v : Mihailescu.PrimesOver p K,
+      ∀ w : Mihailescu.SemilocalUnits K p, w ^ N ∈ (toSemilocalUnits K p).range := by
+  set N := Nat.card (∀ v : PrimesAbove K p,
     (IsLocalRing.ResidueField (v.1.adicCompletionIntegers K))ˣ)
   refine ⟨N, Nat.card_pos.ne', fun w ↦ (mem_range_toSemilocalUnits_iff K p _).2 fun v ↦ ?_⟩
   refine (mem_range_toIntegerUnits_iff_residue v.1 _).2 ?_
-  have key : (fun v : Mihailescu.PrimesOver p K ↦
+  have key : (fun v : PrimesAbove K p ↦
       Units.map (IsLocalRing.residue (v.1.adicCompletionIntegers K)).toMonoidHom (w v)) ^ N = 1 :=
     pow_card_eq_one'
   have h2 : Units.map (IsLocalRing.residue (v.1.adicCompletionIntegers K)).toMonoidHom (w v) ^ N
@@ -197,7 +207,8 @@ theorem exists_pow_mem_range_toSemilocalUnits :
 
 omit [Fact p.Prime] in
 /-- A global unit which is a principal unit in every $K_\mathfrak{p}$, $\mathfrak{p} \mid p$, lies
-in $E_1$. This is the converse of `norm_algebraMap_sub_one_lt`. -/
+in $E_1$. This is the converse of `IsDedekindDomain.HeightOneSpectrum.norm_algebraMap_sub_one_lt`.
+-/
 @[category API, AMS 11]
 theorem isPrincipalUnitAbove_of_forall_valued_sub_one_lt {u : (𝓞 K)ˣ}
     (h : ∀ v : PrimesAbove K p,
@@ -207,6 +218,10 @@ theorem isPrincipalUnitAbove_of_forall_valued_sub_one_lt {u : (𝓞 K)ˣ}
   have hv' := Valued.toNormedField.norm_lt_one_iff.2 (h ⟨v, hv⟩)
   rw [← map_one (algebraMap (𝓞 K) (v.adicCompletion K)), ← map_sub] at hv'
   exact (FinitePlace.norm_lt_one_iff_mem K v ((u : 𝓞 K) - 1)).1 hv'
+
+section fact
+
+attribute [local instance] fact_norm_natCast_lt_one
 
 /-- The subgroups $p^k U_1$ shrink to $0$ uniformly: every neighbourhood of $0$ in $U_1$ contains
 $p^k U_1$ for all large $k$. -/
@@ -220,7 +235,7 @@ theorem exists_forall_pow_smul_mem {V : Set (U₁ K p)} (hV : V ∈ 𝓝 (0 : U�
     intro v
     obtain ⟨s, hs, hst⟩ := Filter.mem_comap.1
       ((OneUnits.isInducing_coe (K := v.1.adicCompletion K)).nhds_eq_comap 0 ▸ ht v)
-    obtain ⟨k₀, hk₀⟩ := exists_forall_pow_pow_mem_nhds_one v.1 (norm_natCast_lt_one K p v) hs
+    obtain ⟨k₀, hk₀⟩ := exists_forall_pow_pow_mem_nhds_one v.1 (v.1.norm_natCast_lt_one v.2) hs
     refine ⟨k₀, fun k hk z ↦ hst ?_⟩
     have hcoe : ((((p : ℤ_[p]) ^ k • z).toMul : (v.1.adicCompletion K)ˣ) :
           v.1.adicCompletion K)
@@ -234,6 +249,8 @@ theorem exists_forall_pow_smul_mem {V : Set (U₁ K p)} (hV : V ∈ 𝓝 (0 : U�
   choose kk hkk using hplace
   exact ⟨hI.toFinset.sup kk, fun m hm z ↦ hIV fun v hv ↦
     hkk v m ((Finset.le_sup (hI.mem_toFinset.2 hv)).trans hm) (z v)⟩
+
+end fact
 
 /-- $p^{m+1} z_m \to 0$ for every sequence $z_m$ in $U_1$. -/
 @[category API, AMS 11]
@@ -266,7 +283,7 @@ $\varphi_\varepsilon(c) = \iota(\prod_i \varepsilon_i^{c_i.\mathrm{appr}\,n}) \c
 theorem toSemilocalUnits_unitsLinearMap_mem_unitClosure {ε : Fin (rank K) → (𝓞 K)ˣ}
     (hone : ∀ i, IsPrincipalUnitAbove K p (ε i)) (c : Fin (rank K) → ℤ_[p]) :
     toSemilocalUnits K p (Multiplicative.ofAdd (unitsLinearMap ε hone c)) ∈
-      Mihailescu.unitClosure p K := by
+      Mihailescu.unitClosure K p := by
   refine Subgroup.mem_iInf.2 fun n ↦ ?_
   choose d hd using fun i ↦ PadicInt.exists_eq_appr_add_pow_mul (c i) (n + 1)
   have hc : c = (fun i ↦ ((c i).appr (n + 1) : ℤ_[p])) + (p : ℤ_[p]) ^ (n + 1) • d := by
@@ -327,25 +344,6 @@ theorem rank_le_finrank : rank K ≤ Module.finrank ℚ K := by
   show Fintype.card (InfinitePlace K) - 1 ≤ Module.finrank ℚ K
   lia
 
-/-- $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} \le r_1 + r_2 - 1$. Rank-nullity for
-$\varphi_\varepsilon : \mathbb{Z}_p^r \to U_1$, whose image has the same rank as
-$\overline{E_1}$ because it has finite index in it. -/
-@[category API, AMS 11]
-theorem rank_closureE₁_le : Module.rank ℤ_[p] (closureE₁ K p) ≤ (rank K : Cardinal) := by
-  obtain ⟨ε, hmax, hone⟩ := exists_isMaxRank_isPrincipalUnitAbove K p
-  rw [rank_closureE₁_eq ε hone hmax, ← rank_range_add_rank_ker_unitsLinearMap ε hone]
-  exact le_self_add
-
-/-- $\overline{E_1}$ has finite $\mathbb{Z}_p$-rank. -/
-@[category API, AMS 11]
-theorem rank_closureE₁_lt_aleph0 : Module.rank ℤ_[p] (closureE₁ K p) < Cardinal.aleph0 :=
-  (rank_closureE₁_le K p).trans_lt Cardinal.natCast_lt_aleph0
-
-/-- $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} \le r_1 + r_2 - 1$, as naturals. -/
-@[category API, AMS 11]
-theorem finrank_closureE₁_le_rank : Module.finrank ℤ_[p] (closureE₁ K p) ≤ rank K :=
-  Module.finrank_le_of_rank_le (rank_closureE₁_le K p)
-
 /- ## The rank of `unitClosure` is at most the rank of `closureE₁` -/
 
 variable {K p}
@@ -367,8 +365,8 @@ lifts, after raising to the $N$-th power, to a continuous additive map $g : \mat
 with $\iota(g(x)) = f(x)^N$. -/
 @[category API, AMS 11]
 theorem exists_addMonoidHom_of_pow_mem_range {n N : ℕ}
-    (hN : ∀ w : Mihailescu.SemilocalUnits p K, w ^ N ∈ (toSemilocalUnits K p).range)
-    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits p K) (hc : Continuous f) :
+    (hN : ∀ w : Mihailescu.SemilocalUnits K p, w ^ N ∈ (toSemilocalUnits K p).range)
+    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits K p) (hc : Continuous f) :
     ∃ g : (Fin n → ℤ_[p]) →+ U₁ K p, Continuous g ∧
       ∀ x, toSemilocalUnits K p (Multiplicative.ofAdd (g x)) = f (Multiplicative.ofAdd x) ^ N := by
   have hesymm : Continuous
@@ -388,10 +386,10 @@ $w = \iota(e) \cdot u^{p^{n+1}}$ one gets $y = \iota(e^N) + p^{n+1} \cdot z$ wit
 and $\iota(z) = u^N$. -/
 @[category API, AMS 11]
 theorem mem_closureE₁_of_toSemilocalUnits_eq_pow {N : ℕ}
-    (hN : ∀ w : Mihailescu.SemilocalUnits p K, w ^ N ∈ (toSemilocalUnits K p).range)
-    {w : Mihailescu.SemilocalUnits p K} (hw : w ∈ Mihailescu.unitClosure p K) {y : U₁ K p}
+    (hN : ∀ w : Mihailescu.SemilocalUnits K p, w ^ N ∈ (toSemilocalUnits K p).range)
+    {w : Mihailescu.SemilocalUnits K p} (hw : w ∈ Mihailescu.unitClosure K p) {y : U₁ K p}
     (hy : toSemilocalUnits K p (Multiplicative.ofAdd y) = w ^ N) : y ∈ closureE₁ K p := by
-  have hpr : ∀ x : (𝓞 K)ˣ, Mihailescu.diagonalUnits p K x ∈ (toSemilocalUnits K p).range →
+  have hpr : ∀ x : (𝓞 K)ˣ, Mihailescu.diagonalUnits K p x ∈ (toSemilocalUnits K p).range →
       IsPrincipalUnitAbove K p x := by
     intro x hx
     refine isPrincipalUnitAbove_of_forall_valued_sub_one_lt K p fun v ↦ ?_
@@ -410,7 +408,7 @@ theorem mem_closureE₁_of_toSemilocalUnits_eq_pow {N : ℕ}
       (Multiplicative.ofAdd (d + (p : ℤ_[p]) ^ (m + 1) • z.toAdd)) = w ^ N := by
     rw [ofAdd_add, map_mul, hd, toSemilocalUnits_ofAdd_diag, ← hab, mul_pow]
     congr 1
-    · show Mihailescu.diagonalUnits p K (e ^ N) = Mihailescu.diagonalUnits p K e ^ N
+    · show Mihailescu.diagonalUnits K p (e ^ N) = Mihailescu.diagonalUnits K p e ^ N
       rw [map_pow]
     · rw [← Nat.cast_pow p (m + 1),
         toSemilocalUnits_ofAdd_natCast_smul, ofAdd_toAdd, hz, powMonoidHom_apply,
@@ -421,7 +419,7 @@ theorem mem_closureE₁_of_toSemilocalUnits_eq_pow {N : ℕ}
 $N x = 0$ and $x = 0$ in the torsion-free group $\mathbb{Z}_p^n$. -/
 @[category API, AMS 11]
 theorem injective_of_toSemilocalUnits_eq_pow {n N : ℕ} (hN0 : N ≠ 0)
-    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits p K)
+    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits K p)
     (hf : Function.Injective f) (g : (Fin n → ℤ_[p]) →+ U₁ K p)
     (hg : ∀ x, toSemilocalUnits K p (Multiplicative.ofAdd (g x)) =
       f (Multiplicative.ofAdd x) ^ N) :
@@ -454,9 +452,9 @@ theorem le_finrank_closureE₁_of_linearMap {n : ℕ} (g : (Fin n → ℤ_[p]) �
 $n \le \operatorname{rank}_{\mathbb{Z}_p} \overline{E_1}$. -/
 @[category API, AMS 11]
 theorem le_finrank_closureE₁_of_monoidHom {n : ℕ}
-    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits p K)
+    (f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits K p)
     (hf : Function.Injective f) (hc : Continuous f)
-    (hr : ∀ x, f x ∈ Mihailescu.unitClosure p K) :
+    (hr : ∀ x, f x ∈ Mihailescu.unitClosure K p) :
     n ≤ Module.finrank ℤ_[p] (closureE₁ K p) := by
   obtain ⟨N, hN0, hN⟩ := exists_pow_mem_range_toSemilocalUnits K p
   obtain ⟨g, hgc, hg⟩ := exists_addMonoidHom_of_pow_mem_range hN f hc
@@ -474,7 +472,7 @@ variable (K p)
 for any bound on the supremum. -/
 @[category API, AMS 11]
 theorem zpRankBelow_unitClosure_le (bound : ℕ) :
-    Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure p K) ≤
+    Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure K p) ≤
       Module.finrank ℤ_[p] (closureE₁ K p) :=
   zpRankBelow_le fun _ f hf hc hr ↦ le_finrank_closureE₁_of_monoidHom f hf hc hr
 
@@ -539,8 +537,8 @@ unevaluated `Module.finrank` through elaboration. -/
 @[category API, AMS 11]
 theorem exists_monoidHom_unitClosure {n : ℕ}
     (hn : n ≤ Module.finrank ℤ_[p] (closureE₁ K p)) :
-    ∃ f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits p K,
-      Function.Injective f ∧ Continuous f ∧ ∀ x, f x ∈ Mihailescu.unitClosure p K := by
+    ∃ f : Multiplicative (Fin n → ℤ_[p]) →* Mihailescu.SemilocalUnits K p,
+      Function.Injective f ∧ Continuous f ∧ ∀ x, f x ∈ Mihailescu.unitClosure K p := by
   obtain ⟨ε, hmax, hone⟩ := exists_isMaxRank_isPrincipalUnitAbove K p
   obtain ⟨ψ, hψ⟩ := exists_linearMap_injective_comp hone
     (hn.trans (le_of_eq (finrank_closureE₁_eq_finrank_range hone hmax)))
@@ -558,7 +556,7 @@ as soon as the bound is at least $r_1 + r_2 - 1$. -/
 @[category API, AMS 11]
 theorem finrank_closureE₁_le_zpRankBelow {bound : ℕ} (hb : rank K ≤ bound) :
     Module.finrank ℤ_[p] (closureE₁ K p) ≤
-      Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure p K) := by
+      Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure K p) := by
   obtain ⟨f, hf, hc, hr⟩ := exists_monoidHom_unitClosure K p le_rfl
   exact le_zpRankBelow_of_exists ((finrank_closureE₁_le_rank K p).trans hb) f hf hc hr
 
@@ -572,33 +570,32 @@ $\mathbb{Z}_p$-rank of the closure $\overline{E_1}$ of $E_1$ in $U_1$, for any b
 $r_1 + r_2 - 1$ on the supremum. -/
 @[category API, AMS 11]
 theorem zpRankBelow_unitClosure_eq {bound : ℕ} (hb : rank K ≤ bound) :
-    Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure p K) =
+    Mihailescu.zpRankBelow p bound (Mihailescu.unitClosure K p) =
       Module.finrank ℤ_[p] (closureE₁ K p) :=
   le_antisymm (zpRankBelow_unitClosure_le K p bound) (finrank_closureE₁_le_zpRankBelow K p hb)
 
 /-- **The Leopoldt defects agree**:
 $\mathcal{D}_L(K) = (r_1 + r_2 - 1) - \operatorname{rank}_{\mathbb{Z}_p} \overline{E_1}$. -/
 @[category API, AMS 11]
-theorem defect_eq : Mihailescu.defect p K = rank K - Module.finrank ℤ_[p] (closureE₁ K p) := by
-  rw [Mihailescu.defect_eq_sub, zpRankBelow_unitClosure_eq K p (rank_le_finrank K)]
+theorem defect_eq : Mihailescu.defect K p = rank K - Module.finrank ℤ_[p] (closureE₁ K p) := by
+  rw [Mihailescu.defect, zpRankBelow_unitClosure_eq K p (rank_le_finrank K)]
 
-/-- **Mihăilescu's formulation of Leopoldt's conjecture is Wikipedia's**: the Leopoldt defect
-vanishes iff $\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} = r_1 + r_2 - 1$, the statement
-of `leopoldt_conjecture.variants.zpRank`. -/
+/-- Mihăilescu's Leopoldt defect vanishes iff
+$\operatorname{rank}_{\mathbb{Z}_p} \overline{E_1} = r_1 + r_2 - 1$, stated with
+`Module.finrank`. -/
 @[category API, AMS 11]
-theorem leopoldtConjecture_iff_finrank :
-    Mihailescu.LeopoldtConjecture p K ↔ Module.finrank ℤ_[p] (closureE₁ K p) = rank K := by
-  rw [Mihailescu.leopoldtConjecture_iff_defect, defect_eq, Nat.sub_eq_zero_iff_le]
+theorem defect_eq_zero_iff_finrank :
+    Mihailescu.defect K p = 0 ↔ Module.finrank ℤ_[p] (closureE₁ K p) = rank K := by
+  rw [defect_eq, Nat.sub_eq_zero_iff_le]
   exact ⟨fun h ↦ le_antisymm (finrank_closureE₁_le_rank K p) h, fun h ↦ h.ge⟩
 
-/-- Mihăilescu's formulation is also equivalent to the `p`-adic-relation form
-`leopoldt_conjecture`, by `zpRank_iff`. -/
+/-- **Mihăilescu's formulation of Leopoldt's conjecture is Wikipedia's**: the statement of
+`leopoldt_conjecture.variants.mihailescu` holds iff the statement of `leopoldt_conjecture`
+does. -/
 @[category API, AMS 11]
-theorem leopoldtConjecture_iff_forall_isPadicRelation :
-    Mihailescu.LeopoldtConjecture p K ↔
-      ∀ ε : Fin (rank K) → (𝓞 K)ˣ, IsMaxRank ε → (∀ i, IsPrincipalUnitAbove K p (ε i)) →
-        ∀ a : Fin (rank K) → ℤ_[p], IsPadicRelation K p ε a → a = 0 :=
-  (leopoldtConjecture_iff_finrank K p).trans (zpRank_iff K p)
+theorem defect_eq_zero_iff :
+    Mihailescu.defect K p = 0 ↔ Module.rank ℤ_[p] (closureE₁ K p) = rank K :=
+  (defect_eq_zero_iff_finrank K p).trans (rank_closureE₁_eq_iff_finrank K p).symm
 
 end Mihailescu
 
